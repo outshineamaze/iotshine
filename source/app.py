@@ -147,7 +147,7 @@ class RequestRouter(object):
 			return self.handler._excute(*self.path_args,**self.path_kwargs)
 		else:
 			print 'app 149  '
-			error  = HttpError('404','not foound you request page ')
+			error  = HttpError('404 ','not foound you request page ')
 			return error()
 
 
@@ -158,14 +158,14 @@ class BaseRequest(object):
 	def  __init__(self,request,**kwargs):
 		super(BaseRequest, self).__init__()
 		self.request = request
-		self.status_code ='200'
+		self.status_code ='200 OK'
 		self.header = []
 	def _excute(self,*args,**kwargs):
 		print 'steart _execute'
 		try:
 			print self.request.method
 			if self.request.method() not in self.Default_Method:
-				error= HttpError('405','Invalid method')
+				error= HttpError('405 Method Not Allowed','Invalid method')
 				return error()
 
 			self.path_args = [self.decode_argument(arg) for arg in args]
@@ -180,7 +180,7 @@ class BaseRequest(object):
 			if result is not None:
 				return result
 		except Exception as e:
-			error= HttpError('500','some error in server ')
+			error= HttpError('500 Internal Server Error','some error in server ')
 				
 			print 'Exception in handler excute'
 			return error()
@@ -189,7 +189,7 @@ class BaseRequest(object):
 		try:
 			return to_unicode(value)
 		except UnicodeDecodeError:
-			error =  HttpError('400', "Invalid unicode in %s: %r" %
+			error =  HttpError('400 Bad Request', "Invalid unicode in %s: %r" %
 								(name or "url", value[:40]))
 			return error()
 	def set_status_code(self,code):
@@ -215,7 +215,7 @@ class HttpError(object):
 		print ' this  is result error app 208'
 		return result
 class HttpNotFound(object):
-	def __init__(self,status_code = '404',log_message ='404 not foound ',header =[]):
+	def __init__(self,status_code = '404 Not Found',log_message ='404 not foound ',header =[]):
 		self.status_code = status_code
 		self.log_message = log_message
 		self.reason = log_message

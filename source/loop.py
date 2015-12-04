@@ -114,6 +114,7 @@ class EPollLoop(object):
 							del self.fd_to_socket[fd]
 
 						else:
+
 							print 'close  client connection ',socket.getpeername()
 							self.epoll.unregister(fd)
 							self.fd_to_socket[fd].close()
