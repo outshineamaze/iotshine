@@ -70,20 +70,22 @@ class EPollLoop(object):
 		self.server = server
 		self.server.setblocking(0)
 		self.epoll= select.epoll()
-		self.epoll.register(self.server,fileno(),select.EPOLLIN)
+		self.epoll.register(self.server.fileno(),select.EPOLLIN)
 		#message_queues ={}
 		self.fd_to_socket = {self.server.fileno():self.server}
 	def start(self):
 
 		while True:
 			print "waiting for connecting ........."
-			events = self.epoll.poll(self.timeout )
+			events = self.epoll.poll(self.timeout)
 			if not events:
 				print 'there is no events for connecting...'
 				continue
 
 			for fd,event in events:
+
 				socket  =  self.fd_to_socket[fd]
+				print 'activate client socket'
 				if socket and select.EPOLLIN:
 					if socket == self.server:
 						connection ,address = self.server.accept()
@@ -107,10 +109,16 @@ class EPollLoop(object):
 							
 							socket.sendall(result)
 							print 'send data:',data,'>>>client :',socket.getpeername()
+							self.epoll.unregister(fd)
+							self.fd_to_socket[fd].close()
+							del self.fd_to_socket[fd]
 
 						else:
-							self.epoll.modify(fd,select.EPOLLHUB)
 							print 'close  client connection ',socket.getpeername()
+							self.epoll.unregister(fd)
+							self.fd_to_socket[fd].close()
+							del self.fd_to_socket[fd]
+							
 
 				elif event and select.EPOLLHUB:
 					self.epoll.unregister(fd)
