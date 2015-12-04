@@ -66,7 +66,7 @@ class HttpServer(object):
 
 			status,response_headers =self.header_set
 			print response_headers
-			response ='HTTP1.1/ {status}\r\n'.format(status = status)
+			response ='HTTP/1.1 {status}\r\n'.format(status = status)
 			if response_headers != []:
 				for header in response_headers:
 					response += '{0}: {1}\r\n'.format(*header)
