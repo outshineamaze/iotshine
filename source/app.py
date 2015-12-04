@@ -123,7 +123,7 @@ class RequestRouter(object):
 			match  = spec.regex.match(self.request.path())
 			print self.request.path()
 			print match
-			if match:
+			if match !=None:
 				print spec
 				self.handler_class = spec.handler_class
 				self.handler_kwargs  = spec.kwargs
@@ -136,11 +136,20 @@ class RequestRouter(object):
 						self.path_kwargs = [_unquote_or_none(s)
 												for s in match.groups()]
 				return
+
+
+
 	def execute(self):
-		
-		self.handler = self.handler_class(self.request,**self.handler_kwargs)
-		print 'get handler execute ......waiting handler_execute.....'
-		return self.handler._excute(*self.path_args,**self.path_kwargs)
+		if self.handler_class !=None:
+			print 'app 144'
+			self.handler = self.handler_class(self.request,**self.handler_kwargs)
+			print 'get handler execute ......waiting handler_execute.....'
+			return self.handler._excute(*self.path_args,**self.path_kwargs)
+		else:
+			print 'app 149  '
+			error  = HttpError('404','not foound you request page ')
+			return error()
+
 
 
 
@@ -156,12 +165,13 @@ class BaseRequest(object):
 		try:
 			print self.request.method
 			if self.request.method() not in self.Default_Method:
-				raise HttpError(405)
-			print '1'
+				error= HttpError('405','Invalid method')
+				return error()
+
 			self.path_args = [self.decode_argument(arg) for arg in args]
 			self.path_kwargs = dict((k, self.decode_argument(v, name=k))
 										for (k, v) in kwargs.items())
-			print '1'
+
 			method = getattr(self,self.request.method().lower())
 			print 'get method ...........'
 			result = method (*self.path_args,**self.path_kwargs)
@@ -170,14 +180,18 @@ class BaseRequest(object):
 			if result is not None:
 				return result
 		except Exception as e:
+			error= HttpError('500','some error in server ')
+				
 			print 'Exception in handler excute'
+			return error()
 
 	def decode_argument(self, value, name=None):
 		try:
 			return to_unicode(value)
 		except UnicodeDecodeError:
-			raise HTTPError(400, "Invalid unicode in %s: %r" %
+			error =  HttpError('400', "Invalid unicode in %s: %r" %
 								(name or "url", value[:40]))
+			return error()
 	def set_status_code(self,code):
 		self.status_code = code
 	def set_header(self,key,value):
@@ -188,16 +202,30 @@ class BaseRequest(object):
 		results = (self.status_code,self.header,result)
 		return results
 
-class HttpError(Exception):
-	def __init__(self,status_code = 500,log_message =None):
+class HttpError(object):
+	def __init__(self,status_code = '500',log_message =None,header=[]):
+		self.status_code = status_code
+		self.header = header
+		self.reason = log_message
+
+	def __call__(self):
+		message = "error :%s: %s" % (
+			self.status_code,self.reason)
+		result = (self.status_code,self.header,message)
+		print ' this  is result error app 208'
+		return result
+class HttpNotFound(object):
+	def __init__(self,status_code = '404',log_message ='404 not foound ',header =[]):
 		self.status_code = status_code
 		self.log_message = log_message
 		self.reason = log_message
+		self.header = header
 
-	def __str__(self):
-		message = "HTTP %d: %s" % (
+	def __call__(self):
+		message = "error %s: %s" % (
 			self.status_code,self.reason)
-		return message
+		result = (self.status_code,self.header,message)
+		return result
 
 def split_host_and_port(netloc):
 

@@ -95,7 +95,7 @@ class HttpServer(object):
 
 		result = self.application(self.parse_request(data))
 		print 'there is result ....'
-		print result
+		#print result
 		self.start_response(result[0],result[1])
 		return  self.finish_response(result[2])
 
