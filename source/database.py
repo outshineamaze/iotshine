@@ -90,12 +90,13 @@ class BaseModel(object):
 
 	def prepare_sql(self,method,args={}):
 		avalible_method = ['insert','select','update','delete']
-		if  method in avalible_method:
+		exe_method = None
+		if method in avalible_method:
 			exe_method = method
-		else :
+		else:
 			return "there is invalide method ,avalible_method in ['insert','select','update','delete']"
 
-		if method =="select":
+		if exe_method =="select":
 			sql_str ="select * from "+self.table+" where "
 
 			if len(args)>0:
@@ -107,7 +108,7 @@ class BaseModel(object):
 
 			return sql_str.strip(" and ")
 
-		elif method == "insert":
+		elif exe_method == "insert":
 			key= " ("
 
 			key += "".join([i+"," for i in args]).strip(",")
@@ -123,7 +124,7 @@ class BaseModel(object):
 			return sql_str
 
 
-		elif method =="update":
+		elif exe_method =="update":
 			strings=""
 			for i in args:
 				if isinstance(args[i],str):
@@ -137,7 +138,7 @@ class BaseModel(object):
 			return sql_str
 
 
-		elif method=="delete":
+		elif exe_method=="delete":
 			if self.index ==None:
 				raise DatabaseError("please instance the BaseModel")
 			sql_str = "delete from "+self.table+" where id = "+str(self.index)
@@ -276,7 +277,7 @@ if __name__ == '__main__':
 	a = device_sensor().find(sensor_name="Int 传感器")
 	#b = device_sensor().find(data_type=1)
 	
-	c = device_sensor().insert(sensor_name='outshin53',sensor_slug=234,is_active=1,sensor_device_id=1,data_type=1)
+	#c = device_sensor().insert(sensor_name='outshin53',sensor_slug=234,is_active=1,sensor_device_id=1,data_type=1)
 	#x.update(data_type=1,sensor_slug=233)
 	#b.update(data_type=1,sensor_slug=233)
 	

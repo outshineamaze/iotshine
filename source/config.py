@@ -60,7 +60,7 @@ class Mysql(object):
 
 
 
-if __name__ == '__main__':
+#if __name__ == '__main__':
 	# a = Mysql()
 	# b = Mysql()
 
