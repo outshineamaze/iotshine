@@ -3,3 +3,4 @@
 *.pyc
 /.idae/
 *.xml
+*.log
