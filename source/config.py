@@ -1,14 +1,6 @@
 #encoding=utf-8
-import MySQLdb
 import sys
-from DBUtils.PooledDB import PooledDB
-import time
-import platform
-
-
-
 DEBUG =True
-
 if DEBUG:
     MYSQL_DB = 'iot'
     MYSQL_USER = 'root'
@@ -33,12 +25,6 @@ DATABASES =  {
         'PORT': MYSQL_PORT,
         'CHAR':MYSQL_CHAR
     }
-
-
-
-
-
-
 #if __name__ == '__main__':
 	# a = Mysql()
 	# b = Mysql()
