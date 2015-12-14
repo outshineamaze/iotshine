@@ -1,6 +1,6 @@
 *.log
 *.pot
 *.pyc
-/.idae/
+.idae/
 *.xml
 *.log

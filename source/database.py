@@ -1,6 +1,8 @@
 #encoding=utf-8
 import MySQLdb
 import sys
+import logging
+
 from DBUtils.PooledDB import PooledDB
 from config import DATABASES
 
@@ -274,7 +276,7 @@ if __name__ == '__main__':
 
 	#x  =device_sensor(id =1)
 	#b  = device_sensor(id =11)
-	a = device_sensor().find(sensor_name="Int 传感器")
+	#a = device_sensor().find(sensor_name="Int 传感器")
 	#b = device_sensor().find(data_type=1)
 	
 	#c = device_sensor().insert(sensor_name='outshin53',sensor_slug=234,is_active=1,sensor_device_id=1,data_type=1)
@@ -293,3 +295,7 @@ if __name__ == '__main__':
 	# cur.close()
 	# mysql_conn.commit()
 	# mysql_conn.close()
+	logging.debug('This is debug message')
+
+
+
