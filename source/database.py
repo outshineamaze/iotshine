@@ -1,7 +1,8 @@
 #encoding=utf-8
 import MySQLdb
 import sys
-import logging
+
+from log import logger
 
 from DBUtils.PooledDB import PooledDB
 from config import DATABASES
@@ -35,20 +36,7 @@ class Mysql(object):
 			return Mysql.Mysql_Pool.connection()
 
 
-#创建数据表
-#cur.execute("create table student(id int ,name varchar(20),class varchar(30),age varchar(10))")
 
-#插入一条数据
-#cur.execute("insert into student values('4532w56532','To67m','male',14,'fgs','sdgdf','fasgsf',)".strip(","))
-#print "insert into student values('4532w56532','To67m','male',14,'fgs','sdgdf','fasgsf',)".strip(",")
-
-#修改查询条件的数据
-#a = cur.execute("select * from %s",'student')
-
-# b = cur.execute("select * from student")
-# print cur.fetchall()
-#删除查询条件的数据
-#cur.execute("delete from student where age='9'")
 
 
 class DatabaseError(Exception):
@@ -295,7 +283,8 @@ if __name__ == '__main__':
 	# cur.close()
 	# mysql_conn.commit()
 	# mysql_conn.close()
-	logging.debug('This is debug message')
+
+	logger.info("thiV是的sisi ")
 
 
 

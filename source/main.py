@@ -1,7 +1,7 @@
 #encoding:utf-8
 from app import Application,BaseRequest
 from httpserver import HttpServer
-
+from log import logger
 
 class MainHandler(BaseRequest):
     def get(self,*path_args,**path_kwargs):
@@ -22,5 +22,5 @@ if __name__ == '__main__':
 		(r"/favicon.ico", MainHandler)
 		])
 	http = make_server(SERVER_ADDRESS,application)
-	print'server serving on address :{port}..n'.format(port =str(PORT))
+	logger.info('server serving on address :{port}..n'.format(port =str(PORT)))
 	http.run()

@@ -3,6 +3,10 @@ import MySQLdb
 import sys
 from DBUtils.PooledDB import PooledDB
 import time
+import platform
+
+
+
 DEBUG =True
 
 if DEBUG:
@@ -32,31 +36,6 @@ DATABASES =  {
 
 
 
-class Mysql(object):
-	Mysql_Pool = None
-	conn_num = 0
-	pool_num = 0
-
-	def __init__(self):
-		Mysql.Mysql_Pool = Mysql.GetConnection()
-	@staticmethod
-	def GetConnection():
-
-		if Mysql.Mysql_Pool is None:
-			Mysql.pool_num+=1
-			Mysql_Pool = PooledDB(creator=MySQLdb,mincached =1,maxcached =200,
-				host = DATABASES["HOST"],port = DATABASES["PORT"],user = DATABASES["USER"],
-				db = DATABASES["NAME"],use_unicode=False,charset=DATABASES["CHAR"])
-			return Mysql_Pool
-	@staticmethod
-	def Get_conn():
-		if Mysql.Mysql_Pool is None:
-			Mysql()
-			Mysql.conn_num +=1
-			return Mysql.Mysql_Pool.connection()
-		else:
-			Mysql.conn_num +=1
-			return Mysql.Mysql_Pool.connection()
 
 
 
