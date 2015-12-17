@@ -1,6 +1,6 @@
 #iotshine
 依赖的库 :
-	###MySQL-python
-	###DBUtils
-	###python loggin
+	1.   ###MySQL-python
+	2.   ###DBUtils
+	3.   ###python loggin
 	
