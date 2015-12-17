@@ -1,5 +1,5 @@
 #iotshine开发日记&进度
-###依赖的库 :
+###依赖的库youzhexie:
 1.  MySQL-python
 2.  DBUtils
 ##12月14 ：
