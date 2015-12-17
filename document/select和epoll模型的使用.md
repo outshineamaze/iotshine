@@ -1,0 +1,270 @@
+
+上一节简单地介绍了关于io服用 epoll和select 的模型概念
+这一篇文章主要来讲讲如何在项目中使用这种模型
+
+#####下面是一个最基本的epoll 模型的使用的代码:
+```
+#!/usr/bin/python
+# -*- coding: utf-8 -*-
+import socket
+import select
+import Queue
+server =  socket.socket(socket.AF_INET,socket.SOCK_STREAM)
+server.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+server_address = ("127.0.0.1", 8888)
+timeout  = 10
+server.bind(server_address)
+server.listen(5)
+print 'server is running listen ip ',server_address
+server =  socket.socket(socket.AF_INET,socket.SOCK_STREAM)
+server.setblocking(0)
+epoll= select.epoll()
+epoll.register(server,fileno(),select.EPOLLIN)
+message_queues ={}
+fd_to_socket = {server.fileno():server}
+while True:
+	print "waiting for connecting ........."
+	events = epoll.poll(timeout )
+	if not events:
+		print 'there is no events for connecting...'
+		continue
+	for fd,event in events:
+		socket  =  fd_to_socket[fd]
+		if socket & select.EPOLLIN:
+			if socket == server:
+				connection ,address = server.accept()
+				print 'new connection ',address
+				connection.setblocking(0)
+				epoll.register(connection.fileno(),select.EPOLLIN)
+				fd_to_socket[connection.fileno()]= connection
+				message_queues[connection] =Queue.Queue()
+			else:
+				data = socket.recv(1024)
+				if data :
+					print 'recv data ',data,'client :' ,socket.getpeername()
+					message_queues[socket].put(data)
+					epoll.modify(fd,select.EPOLLOUT)
+		elif event &select.EPOLLOUT:
+			try :
+				msg = message_queues(socket).get_nowait()
+			except Queue.Empty:
+				print 'quere Empty',socket.getpeername()
+				epoll.moddify(fd,select.EPOLLIN)
+			else:
+				print 'send data:',data,'>>>client :',socket.getpeername()
+				socket.sendall(msg)
+		elif event &select.EPOLLHUB:
+			epoll.unregister(fd)
+			fd_to_socket[fd].close()
+			del fd_to_socket[fd]
+epoll.unregister(server.fileno())
+epoll.close()
+server.close()
+```
+
+下面这个是一个基于select 模型聊天服务器的示例代码,
+主要的是使用select模型来监控多个socket文件描述符:
+```
+#!/usr/bin/python
+#coding:utf-8
+import sys
+import socket 
+import select
+import time
+class chatserver(object):
+	def __init__(self, host,port,timeout =10,request_size=10):
+		self.clients = 0
+		self.clientmap={}
+		self.outputs = []
+		self.server.setsockopt( socket.SOL_SOCKET, socket.SO_REUSEADDR, 1 )
+		self.server.bind((host,port))
+		self.server.listen(request_size)
+	def run(self):
+		status = '200 OK'
+		response ='HTTP1.1/ {status}\r\n'.format(status = status)
+		response_headers = 'Content-Type:text/plain'
+		response +=response_headers
+		response +='\r\n\r\n'
+		head = response
+		print '>start run server head is <'
+		input = [self.server]
+		running = True
+		while running:
+			try :
+				readble,writeable,exception = select.select(input,self.outputs,[])
+			except select.error,e:
+				break	
+			for sock in readble:
+				print 'find ready fd in socketobject.......'
+
+				if sock is self.server:
+					client ,addr  = self.server.accept()
+					client.setblocking(0)
+					print '>>>new connect from client %s'%str(addr)
+					self.clients +=1
+					print "client number is :"+str(self.clients)
+					self.outputs.append(client)
+					self.clientmap[client]=addr
+					input.append(client)
+				else :
+					try:
+						data = sock.recv(1024)
+					except socket.error,e:
+						print "Error receiving data: %s"%e
+						data=False
+					if data:
+						result  =response+ 'this is response from server'
+						print "this is response:\n"
+						print result
+						sock.sendall(result)
+						print '\nsuccess return response\n'
+						if sock in self.outputs:self.outputs.remove(sock)
+						print '\nclose connection'
+						input.remove(sock)
+						sock.close()
+					else:
+						if sock in self.outputs:self.outputs.remove(sock)
+						print 'no message from client'
+						input.remove(sock)
+						sock.close()
+		self.server.close()
+if __name__ == '__main__':
+	server = chatserver('',8888)
+	server.run()
+```					
+
+上面用很简短的代码就实现了一个在Windows可以运行的聊天服务器了,同样的如果在Linux上面运行的话完全可以使用epoll来代替select.
+
+下面是一个很简介的客户端程序,虽然就几行代码但是完全可以使用进行基本的链接测试,在以后的项目中也会经常被用到
+
+```
+#!/usr/bin/python
+import socket
+# create an INET, STREAMing socket
+s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+# now connect to the web server on port 80 - the normal http port
+s.connect(("127.0.0.1", 8888))
+s.sendall('GET HTTP1.x/ ')
+clientsocket, address = s.accept()
+result = clientsocket.recv(1024)
+print result
+s.close 
+```
+
+####好了,贴了这么多的代码,我们来说说我们的平台是如何使用这个epoll和select io复用模型的:
+
+首先来贴一下我们的 loop.py 文件的代码,这个文件主要有两个类,分别把select和epoll模型封装好,
+因为篇幅的问题我就简单的把核心的代码贴出来,并且把注释也删除掉,当然后面这部分的代码也会继续完善的,具体的查考github上面的源代码.
+
+```
+#!/usr/bin/python
+#coding:utf-8
+import sys
+import os
+import select
+import threading
+import time
+import select
+class SelectLoop(object):
+	def __init__(self,server,timeout,callback):
+		self.server= server
+		self.timeout = timeout
+		self.callback = callback
+	def start(self):
+		print 'start main select loop'
+		input = [self.server]
+		output = []
+		running = True
+		while running:
+			try :
+				readble,writeable,exception = select.select(input,output,[])
+			except select.error,e:
+				break	
+			for sock in readble:
+				if sock is self.server:
+					client ,addr  = self.server.accept()
+					client.setblocking(0)
+					print '>>>new connect from client %s'%str(addr)
+					input.append(client)
+				else :
+					try:
+						data = sock.recv(1024)
+					except socket.error,e:
+						print ">>>>>>>Error receiving data: %s"%e
+						data=False
+					if data:
+						print ">>>>>>>>this is response"
+						result = self.callback(data)
+						print result
+
+						sock.sendall(result)
+						print '>>>>>>>>success return response'
+						input.remove(sock)
+						sock.close()		
+					else:
+						print '>>>>>>no message from client'
+						input.remove(sock)
+						sock.close()
+		self.server.close()
+class EPollLoop(object):
+	def __init__(self,server,timeout,callback):
+		self.callback= callback
+		self.timeout = timeout
+		self.server = server
+		self.server.setblocking(0)
+		self.epoll= select.epoll()
+		self.epoll.register(self.server.fileno(),select.EPOLLIN)
+		self.fd_to_socket = {self.server.fileno():self.server}
+	def start(self):
+		while True:
+			print "waiting for connecting ........."
+			events = self.epoll.poll(self.timeout)
+			if not events:
+				print 'there is no events for connecting...'
+				continue
+			for fd,event in events:
+				socket  =  self.fd_to_socket[fd]
+				print 'activate client socket'
+				if socket and select.EPOLLIN:
+					if socket == self.server:
+						connection ,address = self.server.accept()
+						print 'new connection ',address
+						connection.setblocking(0)
+						self.epoll.register(connection.fileno(),select.EPOLLIN)
+						self.fd_to_socket[connection.fileno()]= connection
+					else:
+						try:
+							data = socket.recv(1024)
+						except:
+							data= False
+						if data :
+							print 'recv data client :' ,socket.getpeername()
+							result = self.callback(data)
+							socket.sendall(result)
+							print 'send data:',data,'>>>client :',socket.getpeername()
+							self.epoll.unregister(fd)
+							self.fd_to_socket[fd].close()
+							del self.fd_to_socket[fd]
+						else:
+							print 'close  client connection ',socket.getpeername()
+							self.epoll.unregister(fd)
+							self.fd_to_socket[fd].close()
+							del self.fd_to_socket[fd]						
+				elif event and select.EPOLLHUB:
+					self.epoll.unregister(fd)
+					self.fd_to_socket[fd].close()
+					del self.fd_to_socket[fd]
+
+		self.epoll.unregister(server.fileno())
+		self.epoll.close()
+		self.server.close()
+```
+我们可以看到,其实这个loop.py文件就是相当于把本篇文章最开始的那两端代码简单封装了一下而已.
+
+ __init__() 方法主要用来初始化我们的io模型类,主要传入三个参数:server,timeout,callback .
+
+ 在初始化的同时 把socket对象传入,同时也把回调函数也传入.
+
+简单的来说loop.py里面的文件主要是把select模型和epoll 模型封装起来,然后在httpserver.py就可以自己调用了.(注;httpserver 实现tcp和http应用的主要位置)
+
+#####下一篇文章来讲一下在在这个项目中是如何实现一个基本的http server,里面会用到这篇文章讲到的loop.py里面的selectloop和epollloop类
