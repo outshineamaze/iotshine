@@ -1,6 +1,4 @@
 #coding:utf-8
-
-
 import sys
 import os
 import select
@@ -105,16 +103,12 @@ class EPollLoop(object):
 							#message_queues[socket].put(data)
 							#self.epoll.modify(fd,select.EPOLLOUT)
 							result = self.callback(data)
-
-							
 							socket.sendall(result)
 							print 'send data:',data,'>>>client :',socket.getpeername()
 							self.epoll.unregister(fd)
 							self.fd_to_socket[fd].close()
 							del self.fd_to_socket[fd]
-
 						else:
-
 							print 'close  client connection ',socket.getpeername()
 							self.epoll.unregister(fd)
 							self.fd_to_socket[fd].close()
