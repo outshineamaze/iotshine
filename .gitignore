@@ -1,7 +1,7 @@
 *.log
 *.pot
 *.pyc
-.idae/
+.idea/
 *.xml
 *.jpg
 pic/
