@@ -4,3 +4,6 @@
 .idae/
 *.xml
 *.jpg
+pic/
+*.png
+*.vsdx
