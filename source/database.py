@@ -13,9 +13,11 @@ class Mysql(object):
 	Mysql_Pool = None
 	conn_num = 0
 	pool_num = 0
+	instans_num = 0
 
-	def __init__(self):
-		Mysql.Mysql_Pool = Mysql.GetConnection()
+	def __init__(self,h):
+		Mysql.instans_num +=1
+
 	@staticmethod
 	def GetConnection():
 
@@ -28,7 +30,17 @@ class Mysql(object):
 	@staticmethod
 	def Get_conn():
 		if Mysql.Mysql_Pool is None:
-			Mysql()
+			print 'dont instans mysql class'
+			Mysql.Mysql_Pool = Mysql.GetConnection()
+			Mysql.conn_num +=1
+			return Mysql.Mysql_Pool.connection()
+		else:
+			Mysql.conn_num +=1
+			return Mysql.Mysql_Pool.connection()
+	def Get_conn_instance(self):
+		if Mysql.Mysql_Pool is None:
+			print 'dont instans mysql class'
+			Mysql.Mysql_Pool = Mysql.GetConnection()
 			Mysql.conn_num +=1
 			return Mysql.Mysql_Pool.connection()
 		else:
@@ -47,6 +59,68 @@ class DatabaseError(Exception):
 	def __str__(self):
 		return "DatabaseError:"+str(self.reason)
 		#print sys.exc_info() 
+
+class Field(object):
+	def __init__(self, name, column_type):
+		self.name = name
+		self.column_type = column_type
+	def __str__(self):
+		return '<%s:%s>' % (self.__class__.__name__, self.name)
+
+class StringField(Field):
+	def __init__(self,name):
+		super(StringField,self).__init__(name,'varchar(100)')
+class IntegerField(Field):
+	def __init__(self, name):
+		super(IntegerField, self).__init__(name, 'bigint')
+
+class ModelMetaclass(type):
+	def __new__(cls,name,bases,attrs):
+		if name=="Model":
+			return type.__new__(cls,name,bases,attrs)
+		mappings = dict()
+		for k, v in attrs.iteritems():
+			if isinstance(v, Field):
+				print('Found mapping: %s==>%s' % (k, v))
+				mappings[k] = v
+		for k in mappings.iterkeys():
+			attrs.pop(k)
+		attrs['__table__'] = name # 假设表名和类名一致
+		attrs['__mappings__'] = mappings # 保存属性和列的映射关系
+		return type.__new__(cls, name, bases, attrs)
+
+
+
+class Model(dict):
+	__metaclass__ = ModelMetaclass
+
+	def __init__(self, **kw):
+		super(Model, self).__init__(**kw)
+
+	def __getattr__(self, key):
+		try:
+			return self[key]
+		except KeyError:
+			raise AttributeError(r"'Model' object has no attribute '%s'" % key)
+
+	def __setattr__(self, key, value):
+		self[key] = value
+
+	def save(self):
+		fields = []
+		params = []
+		args = []
+		for k, v in self.__mappings__.iteritems():
+			fields.append(v.name)
+			params.append('?')
+			args.append(getattr(self, k, None))
+		sql = 'insert into %s (%s) values (%s)' % (self.__table__, ','.join(fields), ','.join(params))
+		print('SQL: %s' % sql)
+		print('ARGS: %s' % str(args))
+
+class Student(Model):
+    name = StringField('username')
+
 
 class BaseModel(object):
 	"""docstring for BaseModel"""
@@ -258,8 +332,28 @@ if __name__ == '__main__':
  #        )
 	# cur = mysql_conn.cursor()
 
-	# mysql_conn = Mysql.Get_conn()
-	# cur = mysql_conn.cursor()
+	# for i in range(10000):
+
+	# 	Mysql.Get_conn()
+
+	# print Mysql.conn_num 
+	# print Mysql.instans_num
+
+	# for h in range(10):
+	# 	a  = Mysql(h)
+	# 	print a.h
+	# 	print a
+	# b = Mysql(4)
+	# print b
+	# print Mysql
+	# print Mysql.instans_num
+
+
+	u = Student(name='Michael')
+	u.save()
+
+
+
 
 
 	#x  =device_sensor(id =1)
@@ -284,7 +378,7 @@ if __name__ == '__main__':
 	# mysql_conn.commit()
 	# mysql_conn.close()
 
-	logger.info("thiV是的sisi ")
+	# logger.info("thiV是的sisi ")
 
 
 
