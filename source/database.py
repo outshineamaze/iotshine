@@ -15,8 +15,8 @@ class Mysql(object):
 	pool_num = 0
 	instans_num = 0
 
-	def __init__(self,h):
-		Mysql.instans_num +=1
+	# def __init__(self,h):
+	# 	 Mysql.instans_num +=1
 
 	@staticmethod
 	def GetConnection():
@@ -39,7 +39,6 @@ class Mysql(object):
 			return Mysql.Mysql_Pool.connection()
 	def Get_conn_instance(self):
 		if Mysql.Mysql_Pool is None:
-			print 'dont instans mysql class'
 			Mysql.Mysql_Pool = Mysql.GetConnection()
 			Mysql.conn_num +=1
 			return Mysql.Mysql_Pool.connection()
@@ -64,19 +63,25 @@ class Field(object):
 	def __init__(self, name, column_type):
 		self.name = name
 		self.column_type = column_type
+
 	def __str__(self):
 		return '<%s:%s>' % (self.__class__.__name__, self.name)
 
 class StringField(Field):
-	def __init__(self,name):
+	def __init__(self,name,null=False,default = None):
 		super(StringField,self).__init__(name,'varchar(100)')
+		self.null = null
+		self.default= default
 class IntegerField(Field):
-	def __init__(self, name):
-		super(IntegerField, self).__init__(name, 'bigint')
+	def __init__(self, name,null=False,default = None):
+		super(IntegerField, self).__init__(name, 'int(11)')
+		self.null = null
+		self.default= default
+
 
 class ModelMetaclass(type):
 	def __new__(cls,name,bases,attrs):
-		if name=="Model":
+		if name=="BaseModel":
 			return type.__new__(cls,name,bases,attrs)
 		mappings = dict()
 		for k, v in attrs.iteritems():
@@ -85,17 +90,69 @@ class ModelMetaclass(type):
 				mappings[k] = v
 		for k in mappings.iterkeys():
 			attrs.pop(k)
-		attrs['__table__'] = name # 假设表名和类名一致
+		attrs['table'] = name # 假设表名和类名一致
 		attrs['__mappings__'] = mappings # 保存属性和列的映射关系
 		return type.__new__(cls, name, bases, attrs)
 
 
 
-class Model(dict):
-	__metaclass__ = ModelMetaclass
+# class Model(dict):
+# 	__metaclass__ = ModelMetaclass
 
-	def __init__(self, **kw):
-		super(Model, self).__init__(**kw)
+# 	def __init__(self, **kw):
+# 		super(Model, self).__init__(**kw)
+
+# 	def __getattr__(self, key):
+# 		try:
+# 			return self[key]
+# 		except KeyError:
+# 			raise AttributeError(r"'Model' object has no attribute '%s'" % key)
+
+# 	def __setattr__(self, key, value):
+# 		self[key] = value
+
+# 	def save(self):
+# 		fields = []
+# 		params = []
+# 		args = []
+# 		for k, v in self.__mappings__.iteritems():
+# 			fields.append(v.name)
+# 			params.append('?')
+# 			args.append(getattr(self, k, None))
+# 		sql = 'insert into %s (%s) values (%s)' % (self.__table__, ','.join(fields), ','.join(params))
+# 		print('SQL: %s' % sql)
+# 		print('ARGS: %s' % str(args))
+
+# class Student(Model):
+#     name = StringField('username')
+
+
+class BaseModel(dict):
+	__metaclass__ = ModelMetaclass
+	"""docstring for BaseModel"""
+
+	def __init__(self,**kw):
+		super(BaseModel, self).__init__( **kw)
+
+		print 'init BaseModel'
+
+		self.mysql_conn =None
+		result = None
+		self.index =None
+		print self.table
+
+		# if len(kw)>0:
+		# 	sql= self.prepare_sql('select',kw)
+		# 	try:
+		# 		self.cur.execute(sql)
+		# 		result= self.cur.fetchone()
+
+		# 	except MySQLdb.Error,e:
+		# 		print "Mysql Error %d: %s" % (e.args[0], e.args[1])
+		# 	if result!=None:
+		# 		self.index= result[0]
+		# 		print 'self.index = ',self.index
+
 
 	def __getattr__(self, key):
 		try:
@@ -106,48 +163,16 @@ class Model(dict):
 	def __setattr__(self, key, value):
 		self[key] = value
 
-	def save(self):
-		fields = []
-		params = []
-		args = []
-		for k, v in self.__mappings__.iteritems():
-			fields.append(v.name)
-			params.append('?')
-			args.append(getattr(self, k, None))
-		sql = 'insert into %s (%s) values (%s)' % (self.__table__, ','.join(fields), ','.join(params))
-		print('SQL: %s' % sql)
-		print('ARGS: %s' % str(args))
 
-class Student(Model):
-    name = StringField('username')
-
-
-class BaseModel(object):
-	"""docstring for BaseModel"""
-	def __init__(self,name,args={}):
-		print 'init BaseModel',name
-		self.table = name
-		result = None
-		self.index =None
-		print self.table
-		self.mysql_conn = Mysql.Get_conn()
-		self.cur = self.mysql_conn.cursor()
-		if len(args)>0:
-			sql= self.prepare_sql('select',args)
-			try:
-				self.cur.execute(sql)
-				result= self.cur.fetchone()
-
-			except MySQLdb.Error,e:
-				print "Mysql Error %d: %s" % (e.args[0], e.args[1])
-			if result!=None:
-				self.index= result[0]
-				print 'self.index = ',self.index
 	def __del__(self):
-		print 'eciting'
-		self.cur.close()
-		self.mysql_conn.commit()
-		self.mysql_conn.close()
+		print 'start del obj'
+		print self.mysql_conn
+
+		if self.mysql_conn!=None:
+
+			self.cur.close()
+			self.mysql_conn.commit()
+			self.mysql_conn.close()
 
 
 
@@ -242,7 +267,8 @@ class BaseModel(object):
 
 
 	def find(self,**args):
-
+		self.mysql_conn = Mysql.Get_conn()
+		self.cur = self.mysql_conn.cursor()
 		sql= self.prepare_sql('select',args)
 		print sql
 		result = None
@@ -254,7 +280,41 @@ class BaseModel(object):
 		#print isinstance(result[1][2],unicode)
 		print result 
 		return result
+
+	def findall(self,offset =None,limit =None):
+		self.mysql_conn = Mysql.Get_conn()
+		self.cur = self.mysql_conn.cursor()
+		if offset !=None and limit !=None:
+			sql = 'select * from '+self.table+" LIMIT "+str(offset)+","+str(limit)
+		elif limit!=None:
+			sql  = 'select * from '+self.table+" LIMIT "+str(limit)
+		else :
+			sql  = 'select * from '+self.table
+		print sql
+		result = None
+		try:
+			self.cur.execute(sql)
+			result= self.cur.fetchall()
+
+		except MySQLdb.Error,e:
+			print "Mysql Error %d: %s" % (e.args[0], e.args[1])
+		rt=[]
+		kwges={}
+		if result !=None:
+			for i in result:
+				print i
+				for k ,v in enumerate(self.__mappings__):
+					kwges[v] = i[k]   
+				print kwges
+				rt.append(self.__class__(**kwges)) 
+
+
+		return rt
+
+
 	def get(self,**args):
+		self.mysql_conn = Mysql.Get_conn()
+		self.cur = self.mysql_conn.cursor()
 		a = args
 		sql= self.prepare_sql('select',a)
 		print sql
@@ -267,15 +327,16 @@ class BaseModel(object):
 
 		except MySQLdb.Error,e:
 			print "Mysql Error %d: %s" % (e.args[0], e.args[1])
-		# if result!=None:
-		# 	self.index= result[0]
-		# 	print 'self.index = ',self.index
 
-		#print result
-		return result
+		if result !=None:
+			for k ,v in enumerate(self.__mappings__):
+				self[v] = result[k]
+
+		return self
 
 	def update(self,**args):
-
+		self.mysql_conn = Mysql.Get_conn()
+		self.cur = self.mysql_conn.cursor()
 		sql= self.prepare_sql('update',args)
 		print sql
 		result = None
@@ -286,6 +347,9 @@ class BaseModel(object):
 			print "Mysql Error %d: %s" % (e.args[0], e.args[1])
 		return result
 	def insert(self,**args):
+
+		self.mysql_conn = Mysql.Get_conn()
+		self.cur = self.mysql_conn.cursor()
 		sql= self.prepare_sql('insert',args)
 		print sql
 		result = None
@@ -299,6 +363,8 @@ class BaseModel(object):
 
 
 	def delete(self):
+		self.mysql_conn = Mysql.Get_conn()
+		self.cur = self.mysql_conn.cursor()
 		sql= self.prepare_sql('delete')
 		print sql
 		result = None
@@ -312,13 +378,17 @@ class BaseModel(object):
 	def save(self):
 		pass
 
-
+class test(BaseModel):
+	idnum = IntegerField('id')
+	name = StringField('name')
+	number  = IntegerField('number')
 
 class device_sensor(BaseModel):
 	"""docstring for sensor"""
 	def __init__(self,**args):
 		super(device_sensor, self).__init__(self.__class__.__name__,args)
 		print self.table
+
 
 if __name__ == '__main__':
 
@@ -349,18 +419,28 @@ if __name__ == '__main__':
 	# print Mysql.instans_num
 
 
-	u = Student(name='Michael')
-	u.save()
+	# u = Student(name='Michael')
+	# u.save()
 
 
 
 
 
-	#x  =device_sensor(id =1)
-	#b  = device_sensor(id =11)
-	#a = device_sensor().find(sensor_name="Int 传感器")
-	#b = device_sensor().find(data_type=1)
-	
+	# x  =device_sensor(id =1)
+	# b  = device_sensor(id =11)
+	# a = device_sensor().find(sensor_name="Int 传感器")
+	# b = device_sensor().find(data_type=1)
+	# b = test().findall(5,7)
+	# b = test().get(id=1)
+	# print '-------'
+	# print b['name']
+	# print test(idnum=1,name='me',number=4).name
+	# print [test().findall()[i].idnum for i  in range(4)]
+	a = dict(id = '23',x='54',me='hhh')
+	a['outshine']='hell'
+	a['dfds']=234
+	print a
+
 	#c = device_sensor().insert(sensor_name='outshin53',sensor_slug=234,is_active=1,sensor_device_id=1,data_type=1)
 	#x.update(data_type=1,sensor_slug=233)
 	#b.update(data_type=1,sensor_slug=233)
