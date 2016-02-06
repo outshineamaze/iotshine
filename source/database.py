@@ -28,7 +28,7 @@ class Mysql(object):
 				db = DATABASES["NAME"],use_unicode=False,charset=DATABASES["CHAR"])
 			return Mysql_Pool
 	@staticmethod
-	def Get_conn():
+	def Get_conn(): 
 		if Mysql.Mysql_Pool is None:
 			print 'dont instans mysql class'
 			Mysql.Mysql_Pool = Mysql.GetConnection()
@@ -37,15 +37,62 @@ class Mysql(object):
 		else:
 			Mysql.conn_num +=1
 			return Mysql.Mysql_Pool.connection()
-	def Get_conn_instance(self):
-		if Mysql.Mysql_Pool is None:
-			Mysql.Mysql_Pool = Mysql.GetConnection()
-			Mysql.conn_num +=1
-			return Mysql.Mysql_Pool.connection()
-		else:
-			Mysql.conn_num +=1
-			return Mysql.Mysql_Pool.connection()
 
+class Raw(object):
+	"""docstring for Raw"""
+	def __init__(self, sql=''):
+		super(Raw, self).__init__()
+		self.sql=sql
+		self.result=None
+		self.mysql_conn = Mysql.Get_conn()
+		self.cur = self.mysql_conn.cursor()
+		if len(self.sql)>0:
+			self.excute()
+
+	def __call__(self,sql):
+
+		self.sql=sql
+		self.excute()
+		return self
+
+	def excute(self):
+			try:
+				self.getnum=self.cur.execute(self.sql)
+				self.result = self.cur
+				print self.getnum
+			except MySQLdb.Error,e:
+				print "Mysql Error %d: %s" % (e.args[0], e.args[1])
+
+
+	def fetchall(self):
+		return self.result.fetchall()
+
+	def fetchone(self):
+		return self.result.fetchone()
+
+	def row(self):
+		index=self.cur.description
+		self.row=tuple([i[0] for i in index])
+		return [i[0] for i in index]
+
+	def json(self):
+		print "get row:"+str(self.getnum)
+		json_str=[]
+		for i in self.result.fetchall():
+			json_str.append(dict(zip(self.row,i)))
+		return json_str
+			
+
+
+	def __del__(self):
+
+		try:
+			print 'delete coursor'
+			self.cur.close()
+			self.mysql_conn.commit()
+			self.mysql_conn.close()
+		except:
+			print 'there are some problem when close cousor and connection'
 
 
 
@@ -96,37 +143,6 @@ class ModelMetaclass(type):
 
 
 
-# class Model(dict):
-# 	__metaclass__ = ModelMetaclass
-
-# 	def __init__(self, **kw):
-# 		super(Model, self).__init__(**kw)
-
-# 	def __getattr__(self, key):
-# 		try:
-# 			return self[key]
-# 		except KeyError:
-# 			raise AttributeError(r"'Model' object has no attribute '%s'" % key)
-
-# 	def __setattr__(self, key, value):
-# 		self[key] = value
-
-# 	def save(self):
-# 		fields = []
-# 		params = []
-# 		args = []
-# 		for k, v in self.__mappings__.iteritems():
-# 			fields.append(v.name)
-# 			params.append('?')
-# 			args.append(getattr(self, k, None))
-# 		sql = 'insert into %s (%s) values (%s)' % (self.__table__, ','.join(fields), ','.join(params))
-# 		print('SQL: %s' % sql)
-# 		print('ARGS: %s' % str(args))
-
-# class Student(Model):
-#     name = StringField('username')
-
-
 class BaseModel(dict):
 	__metaclass__ = ModelMetaclass
 	"""docstring for BaseModel"""
@@ -138,20 +154,9 @@ class BaseModel(dict):
 
 		self.mysql_conn =None
 		result = None
-		self.index =None
 		print self.table
 
-		# if len(kw)>0:
-		# 	sql= self.prepare_sql('select',kw)
-		# 	try:
-		# 		self.cur.execute(sql)
-		# 		result= self.cur.fetchone()
 
-		# 	except MySQLdb.Error,e:
-		# 		print "Mysql Error %d: %s" % (e.args[0], e.args[1])
-		# 	if result!=None:
-		# 		self.index= result[0]
-		# 		print 'self.index = ',self.index
 
 
 	def __getattr__(self, key):
@@ -165,7 +170,7 @@ class BaseModel(dict):
 
 
 	def __del__(self):
-		print 'start del obj'
+
 		print self.mysql_conn
 
 		if self.mysql_conn!=None:
@@ -221,48 +226,18 @@ class BaseModel(dict):
 					strings += " "+i+"='"+args[i]+"',"
 				else:
 					strings += " "+i+"="+str(args[i])+","
-			if self.index==None:
-				raise DatabaseError("please instance the BaseModel")
-			sql_str = "update "+self.table+" set "+strings.strip(",")+" where id="+ str(self.index)
+			if hasattr(self,'id'):
+				sql_str = "update "+self.table+" set "+strings.strip(",")+" where id="+ str(self.id)
+			else:
+				raise DatabaseError("maybe you do not set id word in you Database,you can excute raw sql to delete")
 			return sql_str
-
 
 		elif exe_method=="delete":
-			if self.index ==None:
-				raise DatabaseError("please instance the BaseModel")
-			sql_str = "delete from "+self.table+" where id = "+str(self.index)
+			if hasattr(self,'id'):
+				sql_str = "delete from "+self.table+" where id = "+str(self.id)
+			else:
+				raise DatabaseError("maybe you do not set id word in you Database,you can excute raw sql to delete")
 			return sql_str
-
-	# using tuiple as argurment 	
-	#
-	#	
-	# def prepare_sql_turple(self,method,args):
-	# 	avalible_method = ['insert','select','update','delete']
-	# 	if  method in avalible_method:
-	# 		exe_method = method
-	# 	else :
-	# 		return "there is invalide method ,avalible_method in ['insert','select','update','delete']"
-	# 	if method =="select":
-	# 		sql_str ="select * from "+self.table+" where "+str(args[0][0])+ " = '" +str(args[0][1])+"'"
-	# 		if len(args) > 1:
-	# 			for i in range(1,len(args)):
-	# 				sql_str+= " and "+str(args[i][0])+ " = '" +str(args[i][1])+"'"
-	# 		return sql_str	
-	# 	elif method == "insert":
-	# 		key = " (".join([i[0]+"," for i in args]).strip(",")
-	# 		value ="".join([i[1]+"," for i in args]).strip(",")
-	# 		sql_str = "insert into "+self.table+key+") values("+value+")"
-	# 		return sql_str
-	# 	elif method =="update":
-	# 		for i in args:
-	# 			strings += " ".join(i[0]).join("=").join(i[1])
-	# 		sql_str = "update "+self.table+" set "+strings+" where id="+ str(self.index)
-	# 		return sql_str
-	# 	elif method=="delete":
-	# 		sql_str = "delete form "+self.table+" where id = "+str(self.index)
-	# 		return sql_str
-
-
 
 
 
@@ -271,15 +246,25 @@ class BaseModel(dict):
 		self.cur = self.mysql_conn.cursor()
 		sql= self.prepare_sql('select',args)
 		print sql
+		
 		result = None
 		try:
 			self.cur.execute(sql)
 			result= self.cur.fetchall()
+			index = self.cur.description
 		except MySQLdb.Error,e:
 			print "Mysql Error %d: %s" % (e.args[0], e.args[1])
-		#print isinstance(result[1][2],unicode)
-		print result 
-		return result
+
+		rt=[]
+		key = [m[0] for m in index]
+		if result !=None:
+			for row in result:
+				row = [i for i in row]
+				kwarg = dict(zip(key,row))
+				print kwarg
+				rt.append(self.__class__(**kwarg))
+		return rt
+
 
 	def findall(self,offset =None,limit =None):
 		self.mysql_conn = Mysql.Get_conn()
@@ -295,20 +280,19 @@ class BaseModel(dict):
 		try:
 			self.cur.execute(sql)
 			result= self.cur.fetchall()
+			index = self.cur.description
 
 		except MySQLdb.Error,e:
 			print "Mysql Error %d: %s" % (e.args[0], e.args[1])
 		rt=[]
-		kwges={}
+
+		key = [m[0] for m in index]
 		if result !=None:
-			for i in result:
-				print i
-				for k ,v in enumerate(self.__mappings__):
-					kwges[v] = i[k]   
-				print kwges
-				rt.append(self.__class__(**kwges)) 
-
-
+			for row in result:
+				row = [i for i in row]
+				kwarg = dict(zip(key,row))
+				print kwarg
+				rt.append(self.__class__(**kwarg))
 		return rt
 
 
@@ -324,15 +308,19 @@ class BaseModel(dict):
 		try:
 			self.cur.execute(sql)
 			result= self.cur.fetchone()
+			index = self.cur.description
 
 		except MySQLdb.Error,e:
 			print "Mysql Error %d: %s" % (e.args[0], e.args[1])
-
+		key = [m[0] for m in index]
+		print key
+		print result
 		if result !=None:
-			for k ,v in enumerate(self.__mappings__):
-				self[v] = result[k]
-
-		return self
+			for k,x in enumerate(key):
+				self[x] = result[k]
+			print self.iteritems()
+			return self
+		return []
 
 	def update(self,**args):
 		self.mysql_conn = Mysql.Get_conn()
@@ -363,8 +351,7 @@ class BaseModel(dict):
 
 
 	def delete(self):
-		self.mysql_conn = Mysql.Get_conn()
-		self.cur = self.mysql_conn.cursor()
+
 		sql= self.prepare_sql('delete')
 		print sql
 		result = None
@@ -379,8 +366,8 @@ class BaseModel(dict):
 		pass
 
 class test(BaseModel):
-	idnum = IntegerField('id')
-	name = StringField('name')
+	id = IntegerField('id')
+	name = StringField('name') 
 	number  = IntegerField('number')
 
 class device_sensor(BaseModel):
@@ -402,63 +389,83 @@ if __name__ == '__main__':
  #        )
 	# cur = mysql_conn.cursor()
 
-	# for i in range(10000):
 
-	# 	Mysql.Get_conn()
-
-	# print Mysql.conn_num 
-	# print Mysql.instans_num
-
-	# for h in range(10):
-	# 	a  = Mysql(h)
-	# 	print a.h
-	# 	print a
-	# b = Mysql(4)
-	# print b
-	# print Mysql
-	# print Mysql.instans_num
-
-
-	# u = Student(name='Michael')
-	# u.save()
-
-
-
-
-
-	# x  =device_sensor(id =1)
-	# b  = device_sensor(id =11)
-	# a = device_sensor().find(sensor_name="Int 传感器")
-	# b = device_sensor().find(data_type=1)
+	#测试 get find findall 功能
 	# b = test().findall(5,7)
 	# b = test().get(id=1)
-	# print '-------'
-	# print b['name']
-	# print test(idnum=1,name='me',number=4).name
-	# print [test().findall()[i].idnum for i  in range(4)]
-	a = dict(id = '23',x='54',me='hhh')
-	a['outshine']='hell'
-	a['dfds']=234
-	print a
+	#b = test().find(number=0)
+	# print [test().findall()[i].id for i  in range(4)]
 
-	#c = device_sensor().insert(sensor_name='outshin53',sensor_slug=234,is_active=1,sensor_device_id=1,data_type=1)
-	#x.update(data_type=1,sensor_slug=233)
-	#b.update(data_type=1,sensor_slug=233)
-	
 
-	# try:
-	# 	b = device_sensor().delete()
-	# except DatabaseError as e: 
+	# 插入测试,设置id自增的所以不需要设置id
+	# print test().find(id=2)[0].id
+	# for i in range(10):
+	# 	test().insert(name='hello',number=i)
 
-	# 	print e
-	
-	#b = device_sensor().delete()
+	# 删除测试,删除一行必须向实例一个类,使用get()得到一个对象,然后调用delete()删除
+	# test().get(id=5).delete()
 
-	# cur.close()
-	# mysql_conn.commit()
-	# mysql_conn.close()
+	#update 测试
+	# b = test().get(id=4)
+	# b.update(name='outshinninge')
+	# 或者
+	# b = test().get(id=4).update(name='outshinninge')
+
+
+	# Raw class sql excute
+	#方法一:
+	# a=Raw("select * from test ")
+	# print a.fetchone() #return a tuple 
+	# print a.row() #return a list 
+	# print a.json() #return a list content date dict
+	# print Raw("select * from test ").fetchone()
+	#方法二:
+	# b =Raw()
+	# print b("select * from test ").fetchone()
+
 
 	# logger.info("thiV是的sisi ")
 
 
+    #一些暂时不用但是以后修改代码可能会用的代码片段,
+	# using tuiple as argurment 	
+	#
+	#	
+	# def prepare_sql_turple(self,method,args):
+	# 	avalible_method = ['insert','select','update','delete']
+	# 	if  method in avalible_method:
+	# 		exe_method = method
+	# 	else :
+	# 		return "there is invalide method ,avalible_method in ['insert','select','update','delete']"
+	# 	if method =="select":
+	# 		sql_str ="select * from "+self.table+" where "+str(args[0][0])+ " = '" +str(args[0][1])+"'"
+	# 		if len(args) > 1:
+	# 			for i in range(1,len(args)):
+	# 				sql_str+= " and "+str(args[i][0])+ " = '" +str(args[i][1])+"'"
+	# 		return sql_str	
+	# 	elif method == "insert":
+	# 		key = " (".join([i[0]+"," for i in args]).strip(",")
+	# 		value ="".join([i[1]+"," for i in args]).strip(",")
+	# 		sql_str = "insert into "+self.table+key+") values("+value+")"
+	# 		return sql_str
+	# 	elif method =="update":
+	# 		for i in args:
+	# 			strings += " ".join(i[0]).join("=").join(i[1])
+	# 		sql_str = "update "+self.table+" set "+strings+" where id="+ str(self.index)
+	# 		return sql_str
+	# 	elif method=="delete":
+	# 		sql_str = "delete form "+self.table+" where id = "+str(self.index)
+	# 		return sql_str
 
+
+		# if len(kw)>0:
+		# 	sql= self.prepare_sql('select',kw)
+		# 	try:
+		# 		self.cur.execute(sql)
+		# 		result= self.cur.fetchone()
+
+		# 	except MySQLdb.Error,e:
+		# 		print "Mysql Error %d: %s" % (e.args[0], e.args[1])
+		# 	if result!=None:
+		# 		self.index= result[0]
+		# 		print 'self.index = ',self.index
