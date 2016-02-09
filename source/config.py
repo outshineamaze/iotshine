@@ -11,7 +11,7 @@ if DEBUG:
 else:
     MYSQL_DB = 'iot'
     MYSQL_USER = 'root'
-    MYSQL_PASS = 'zhoulei5014'
+    MYSQL_PASS = '*************'
     MYSQL_HOST = 'localhost'
     MYSQL_PORT = 3306
     MYSQL_CHAR ="utf8"
