@@ -1,8 +1,3 @@
----
-title: 功能简介 
-tags: iotshine
-date: 2015/9
----
 
 ### [文档地址](http://outshineamaze.github.io/iotshine/)
 ### 功能简介：
