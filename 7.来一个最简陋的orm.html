@@ -1,0 +1,473 @@
+
+<!DOCTYPE HTML>
+<html lang="" >
+    <head>
+        <meta charset="UTF-8">
+        <meta content="text/html; charset=utf-8" http-equiv="Content-Type">
+        <title>实现一个最简陋的orm · GitBook</title>
+        <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+        <meta name="description" content="">
+        <meta name="generator" content="GitBook 3.2.3">
+        
+        
+        
+    
+    <link rel="stylesheet" href="gitbook/style.css">
+
+    
+            
+                
+                <link rel="stylesheet" href="gitbook/gitbook-plugin-search-pro/search.css">
+                
+            
+                
+                <link rel="stylesheet" href="gitbook/gitbook-plugin-highlight/website.css">
+                
+            
+                
+                <link rel="stylesheet" href="gitbook/gitbook-plugin-fontsettings/website.css">
+                
+            
+        
+
+    
+
+    
+        
+        <link rel="stylesheet" href="style/website.css">
+        
+    
+
+        
+    
+    
+    <meta name="HandheldFriendly" content="true"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black">
+    <link rel="apple-touch-icon-precomposed" sizes="152x152" href="gitbook/images/apple-touch-icon-precomposed-152.png">
+    <link rel="shortcut icon" href="gitbook/images/favicon.ico" type="image/x-icon">
+
+    
+    <link rel="next" href="8.celery分布式任务队列.html" />
+    
+    
+    <link rel="prev" href="6.服务器入口.html" />
+    
+
+    </head>
+    <body>
+        
+<div class="book">
+    <div class="book-summary">
+        
+            
+<div id="book-search-input" role="search">
+    <input type="text" placeholder="Type to search" />
+</div>
+
+            
+                <nav role="navigation">
+                
+
+
+<ul class="summary">
+    
+    
+
+    
+
+    
+        
+        
+    
+        <li class="chapter " data-level="1.1" data-path="./">
+            
+                <a href="./">
+            
+                    
+                    简介
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.2" data-path="2.硬件负载服务器开始.html">
+            
+                <a href="2.硬件负载服务器开始.html">
+            
+                    
+                    硬件负载服务器开始
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.3" data-path="3.io复用的应用.html">
+            
+                <a href="3.io复用的应用.html">
+            
+                    
+                    IO复用
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.4" data-path="4.httpserver实现.html">
+            
+                <a href="4.httpserver实现.html">
+            
+                    
+                    httpserver实现
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.5" data-path="5.应用层入口application.html">
+            
+                <a href="5.应用层入口application.html">
+            
+                    
+                    应用层入口application
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.6" data-path="6.服务器入口.html">
+            
+                <a href="6.服务器入口.html">
+            
+                    
+                    服务器入口
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter active" data-level="1.7" data-path="7.来一个最简陋的orm.html">
+            
+                <a href="7.来一个最简陋的orm.html">
+            
+                    
+                    实现一个最简陋的orm
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.8" data-path="8.celery分布式任务队列.html">
+            
+                <a href="8.celery分布式任务队列.html">
+            
+                    
+                    celery分布式任务队列
+            
+                </a>
+            
+
+            
+        </li>
+    
+
+    
+
+    <li class="divider"></li>
+
+    <li>
+        <a href="https://www.gitbook.com" target="blank" class="gitbook-link">
+            Published with GitBook
+        </a>
+    </li>
+</ul>
+
+
+                </nav>
+            
+        
+    </div>
+
+    <div class="book-body">
+        
+            <div class="body-inner">
+                
+                    
+
+<div class="book-header" role="navigation">
+    
+
+    <!-- Title -->
+    <h1>
+        <i class="fa fa-circle-o-notch fa-spin"></i>
+        <a href="." >实现一个最简陋的orm</a>
+    </h1>
+</div>
+
+
+
+
+                    <div class="page-wrapper" tabindex="-1" role="main">
+                        <div class="page-inner">
+                            
+<div id="book-search-results">
+    <div class="search-noresults">
+    
+                                <section class="normal markdown-section">
+                                
+                                <p>&#x8BF4;&#x6765;&#x60ED;&#x6127; &#x4EE5;&#x524D;&#x5BF9;&#x6570;&#x636E;&#x5E93;&#x7684;&#x8FD0;&#x7528;&#x4E00;&#x76F4;&#x5F88;&#x4E0D;&#x719F;&#x7EC3;,&#x521A;&#x521A;&#x597D;&#x901A;&#x8FC7;&#x81EA;&#x5236;orm&#x8FD9;&#x4E2A;&#x8FC7;&#x7A0B;&#x53EF;&#x4EE5;&#x719F;&#x6089;&#x4E00;&#x4E0B;&#x5D4C;&#x5165;&#x5F0F;&#x6570;&#x636E;&#x5E93;&#x64CD;&#x4F5C;
+&#x4E00;&#x5F00;&#x59CB;&#x6211;&#x4F7F;&#x7528;&#x7684;&#x6700;&#x666E;&#x901A;&#x7684;&#x6570;&#x636E;&#x5E93;&#x8FDE;&#x63A5;&#x65B9;&#x5F0F;,&#x4F46;&#x662F;&#x540E;&#x53D1;&#x73B0;&#x8FDE;&#x63A5;&#x6548;&#x7387;&#x5F88;&#x4F4E;,&#x540C;&#x65F6;&#x4E5F;&#x7F3A;&#x4E4F;&#x76F8;&#x5E94;&#x7684;&#x8FDE;&#x63A5;&#x7BA1;&#x7406;&#x673A;&#x5236;,&#x540E;&#x6765;&#x5F00;&#x53D1;&#x7FA4;&#x91CC;&#x7684;&#x4E00;&#x4E2A;&#x524D;&#x8F88;&#x63D0;&#x9192;&#x6211;&#x6539;&#x7528;&#x8FDE;&#x63A5;&#x6C60;&#x6765;&#x7BA1;&#x7406;&#x8FDE;&#x63A5;,&#x6240;&#x4EE5;&#x5C31;&#x6709;&#x4E0B;&#x9762;&#x7684;&#x4EE3;&#x7801;&#x4E86;</p>
+<p>&#x5728;&#x4E0B;&#x9762;&#x7684;&#x4EE3;&#x7801;&#x4E2D;&#x6211;&#x5E94;&#x7528;&#x4E86;DBUtils&#x6570;&#x636E;&#x5E93;&#x8FDE;&#x63A5;&#x6C60; &#x5305;&#x6A21;&#x5757;&#x4E2D;&#x7684;PooledDB 
+DBUtils&#x63D0;&#x4F9B;&#x4E24;&#x79CD;&#x5916;&#x90E8;&#x63A5;&#x53E3;&#xFF1A;
+<!-- more --></p>
+<ul>
+<li>PersistentDB &#xFF1A;&#x63D0;&#x4F9B;&#x7EBF;&#x7A0B;&#x4E13;&#x7528;&#x7684;&#x6570;&#x636E;&#x5E93;&#x8FDE;&#x63A5;&#xFF0C;&#x5E76;&#x81EA;&#x52A8;&#x7BA1;&#x7406;&#x8FDE;&#x63A5;&#x3002;</li>
+<li>PooledDB &#xFF1A;&#x63D0;&#x4F9B;&#x7EBF;&#x7A0B;&#x95F4;&#x53EF;&#x5171;&#x4EAB;&#x7684;&#x6570;&#x636E;&#x5E93;&#x8FDE;&#x63A5;&#xFF0C;&#x5E76;&#x81EA;&#x52A8;&#x7BA1;&#x7406;&#x8FDE;&#x63A5;&#x3002;</li>
+</ul>
+<p>PersistentDB &#x548C; PooledDB &#x90FD;&#x662F;&#x4E3A;&#x4E86;&#x91CD;&#x7528;&#x6570;&#x636E;&#x5E93;&#x8FDE;&#x63A5;&#x6765;&#x63D0;&#x9AD8;&#x6027;&#x80FD;&#xFF0C;&#x5E76;&#x4FDD;&#x6301;&#x6570;&#x636E;&#x5E93;&#x7684;&#x7A33;&#x5B9A;&#x6027;&#x3002;</p>
+<p>&#x6240;&#x4EE5;&#x9009;&#x62E9;&#x4F55;&#x79CD;&#x6A21;&#x5757;&#xFF0C;&#x53EF;&#x4EE5;&#x53C2;&#x8003;&#x4E0A;&#x9762;&#x7684;&#x89E3;&#x91CA;&#x3002; PersistentDB &#x5C06;&#x4F1A;&#x4FDD;&#x6301;&#x4E00;&#x5B9A;&#x6570;&#x91CF;&#x7684;&#x8FDE;&#x63A5;&#x4F9B;&#x9891;&#x7E41;&#x4F7F;&#x7528;&#x3002;&#x5728;&#x8FD9;&#x79CD;&#x60C5;&#x51B5;&#x4E0B;&#x603B;&#x662F;&#x4FDD;&#x6301;&#x56FA;&#x5B9A;&#x6570;&#x91CF;&#x7684;&#x8FDE;&#x63A5;&#x3002;&#x5982;&#x679C;&#x4F60;&#x7684;&#x7A0B;&#x5E8F;&#x9891;&#x7E41;&#x7684;&#x542F;&#x52A8;&#x548C;&#x5173;&#x95ED;&#x7EBF;&#x7A0B;&#xFF0C;&#x6700;&#x597D;&#x4F7F;&#x7528; PooledDB </p>
+<p>&#x53C8;&#x5230;&#x4E86;&#x8D34;&#x4EE3;&#x7801;&#x7684;&#x65F6;&#x523B;&#x5566;!!!!</p>
+<pre><code class="lang-python"><span class="hljs-comment">#encoding=utf-8</span>
+<span class="hljs-keyword">import</span> MySQLdb
+<span class="hljs-keyword">import</span> sys
+<span class="hljs-keyword">from</span> log <span class="hljs-keyword">import</span> logger
+<span class="hljs-keyword">from</span> DBUtils.PooledDB <span class="hljs-keyword">import</span> PooledDB
+<span class="hljs-keyword">from</span> config <span class="hljs-keyword">import</span> DATABASES
+
+<span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">Mysql</span><span class="hljs-params">(object)</span>:</span>
+    Mysql_Pool = <span class="hljs-keyword">None</span>
+    conn_num = <span class="hljs-number">0</span>
+    pool_num = <span class="hljs-number">0</span>
+
+    <span class="hljs-function"><span class="hljs-keyword">def</span> <span class="hljs-title">__init__</span><span class="hljs-params">(self)</span>:</span>
+        Mysql.Mysql_Pool = Mysql.GetConnection()
+<span class="hljs-meta">    @staticmethod</span>
+    <span class="hljs-function"><span class="hljs-keyword">def</span> <span class="hljs-title">GetConnection</span><span class="hljs-params">()</span>:</span>
+        <span class="hljs-keyword">if</span> Mysql.Mysql_Pool <span class="hljs-keyword">is</span> <span class="hljs-keyword">None</span>:
+            Mysql.pool_num+=<span class="hljs-number">1</span>
+            Mysql_Pool = PooledDB(creator=MySQLdb,mincached =<span class="hljs-number">1</span>,maxcached =<span class="hljs-number">200</span>,
+                host = DATABASES[<span class="hljs-string">&quot;HOST&quot;</span>],port = DATABASES[<span class="hljs-string">&quot;PORT&quot;</span>],user = DATABASES[<span class="hljs-string">&quot;USER&quot;</span>],
+                db = DATABASES[<span class="hljs-string">&quot;NAME&quot;</span>],use_unicode=<span class="hljs-keyword">False</span>,charset=DATABASES[<span class="hljs-string">&quot;CHAR&quot;</span>])
+            <span class="hljs-keyword">return</span> Mysql_Pool
+<span class="hljs-meta">    @staticmethod</span>
+    <span class="hljs-function"><span class="hljs-keyword">def</span> <span class="hljs-title">Get_conn</span><span class="hljs-params">()</span>:</span>
+        <span class="hljs-keyword">if</span> Mysql.Mysql_Pool <span class="hljs-keyword">is</span> <span class="hljs-keyword">None</span>:
+            Mysql()
+            Mysql.conn_num +=<span class="hljs-number">1</span>
+            <span class="hljs-keyword">return</span> Mysql.Mysql_Pool.connection()
+        <span class="hljs-keyword">else</span>:
+            Mysql.conn_num +=<span class="hljs-number">1</span>
+            <span class="hljs-keyword">return</span> Mysql.Mysql_Pool.connection()
+</code></pre>
+<p>&#x5728;&#x4E0A;&#x9762;&#x7684;&#x4EE3;&#x7801;&#x4E2D;&#x6211;&#x5B9E;&#x73B0;&#x4E86;&#x529F;&#x80FD;&#x7C7B;&#x4F3C;&#x4E8E;&#x5355;&#x4F8B;&#x6A21;&#x5F0F;&#x7684;mysql&#x8FDE;&#x63A5;&#x6C60;&#x7684;&#x5C01;&#x88C5;,&#x7528;&#x6237;&#x53EA;&#x9700;&#x8981;&#x8C03;&#x7528; Mysql. Get_conn()&#x5C31;&#x53EF;&#x4EE5;&#x83B7;&#x53D6;&#x4E00;&#x4E2A;&#x8FDE;&#x63A5;
+&#x4F7F;&#x7528;&#x8FDE;&#x63A5;&#x6C60;&#x540E;&#x6211;&#x4EEC;&#x53EA;&#x7BA1;&#x4F7F;&#x7528;&#x8FDE;&#x63A5;&#x5C31;&#x597D;&#x4E86;,&#x4E0D;&#x7528;&#x62C5;&#x5FC3;&#x5176;&#x4ED6;&#x7684;&#x95EE;&#x9898;,&#x800C;&#x4E14;&#x6548;&#x7387;&#x6BD4;&#x666E;&#x901A;&#x7684;&#x8FDE;&#x63A5;&#x5927;&#x81F4;&#x5FEB;&#x4E86;6&#x500D;&#x5DE6;&#x53F3;.</p>
+<p>&#x4E0B;&#x9762;&#x6765;&#x770B;&#x770B;basemodel&#x7684;&#x7C7B;,&#x5728;&#x5B9A;&#x4E49;&#x6A21;&#x578B;&#x7684;&#x65F6;&#x5019;&#x7406;&#x8BBA;&#x4E0A;&#x6700;&#x597D;&#x7EE7;&#x627F;&#x4E2D;&#x56FD;&#x57FA;&#x7C7B;,&#x8FD9;&#x6837;&#x5C31;&#x662F;&#x53EF;&#x4EE5;&#x6109;&#x5FEB;&#x8C03;&#x7528;&#x5199;&#x597D;&#x5728;basemodel&#x91CC;&#x9762;&#x7684;&#x5404;&#x79CD;&#x65B9;&#x6CD5;&#x4E86;,&#x540C;&#x6837;&#x8FD9;&#x7C7B;&#x4F1A;&#x6BD4;&#x8F83;&#x5927;,&#x6BD5;&#x7ADF;&#x6709;&#x90A3;&#x4E48;&#x591A;&#x7684;&#x65B9;&#x6CD5;&#x53EF;&#x4EE5;&#x81EA;&#x5B9A;&#x4E49;,&#x4E0B;&#x9762;&#x5C31;&#x7B80;&#x5355;&#x7684;&#x628A;&#x5173;&#x952E;&#x7684;&#x4EE3;&#x7801;&#x8D34;&#x51FA;&#x6765;&#x770B;&#x4E00;&#x770B;&#x89E3;&#x91CA;&#x89E3;&#x91CA;&#x4E00;&#x4E0B;:</p>
+<pre><code class="lang-python"><span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">BaseModel</span><span class="hljs-params">(object)</span>:</span>
+    <span class="hljs-string">&quot;&quot;&quot;docstring for BaseModel :&#x8FD9;&#x662F;&#x4E00;&#x4E2A;model&#x7684;&#x57FA;&#x7C7B;,&#x5EFA;&#x8BAE;&#x6240;&#x6709;&#x7684;model&#x90FD;&#x7EE7;&#x627F;&#x8FD9;&#x4E2A;&#x7C7B;
+    &#x8FD9;&#x6837;&#x5C31;&#x53EF;&#x4EE5;&#x6B63;&#x5927;&#x5149;&#x660E;&#x7684;&#x4F7F;&#x7528;&#x91CC;&#x9762;
+    &#x81EA;&#x5DF1;&#x5B9A;&#x4E49;&#x7684;&#x5404;&#x79CD;sql&#x8BED;&#x53E5;&#x7684;&#x5C01;&#x88C5;&#x4E86;&quot;&quot;&quot;</span>
+    <span class="hljs-function"><span class="hljs-keyword">def</span> <span class="hljs-title">__init__</span><span class="hljs-params">(self,name,args={})</span>:</span>
+        <span class="hljs-keyword">print</span> <span class="hljs-string">&apos;init BaseModel&apos;</span>,name
+        self.table = name
+        result = <span class="hljs-keyword">None</span>
+        self.index =<span class="hljs-keyword">None</span>
+        <span class="hljs-keyword">print</span> self.table
+        self.mysql_conn = Mysql.Get_conn()
+        self.cur = self.mysql_conn.cursor()
+        <span class="hljs-keyword">if</span> len(args)&gt;<span class="hljs-number">0</span>:
+            sql= self.prepare_sql(<span class="hljs-string">&apos;select&apos;</span>,args)
+            <span class="hljs-keyword">try</span>:
+                self.cur.execute(sql)
+                result= self.cur.fetchone()
+
+            <span class="hljs-keyword">except</span> MySQLdb.Error,e:
+                <span class="hljs-keyword">print</span> <span class="hljs-string">&quot;Mysql Error %d: %s&quot;</span> % (e.args[<span class="hljs-number">0</span>], e.args[<span class="hljs-number">1</span>])
+            <span class="hljs-keyword">if</span> result!=<span class="hljs-keyword">None</span>:
+                self.index= result[<span class="hljs-number">0</span>]
+                <span class="hljs-keyword">print</span> <span class="hljs-string">&apos;self.index = &apos;</span>,self.index
+    <span class="hljs-function"><span class="hljs-keyword">def</span> <span class="hljs-title">__del__</span><span class="hljs-params">(self)</span>:</span>
+        <span class="hljs-keyword">print</span> <span class="hljs-string">&apos;eciting&apos;</span>
+        self.cur.close()
+        self.mysql_conn.commit()
+        self.mysql_conn.close()
+
+    <span class="hljs-function"><span class="hljs-keyword">def</span> <span class="hljs-title">prepare_sql</span><span class="hljs-params">(self,method,args={})</span>:</span>
+        avalible_method = [<span class="hljs-string">&apos;insert&apos;</span>,<span class="hljs-string">&apos;select&apos;</span>,<span class="hljs-string">&apos;update&apos;</span>,<span class="hljs-string">&apos;delete&apos;</span>]
+        exe_method = <span class="hljs-keyword">None</span>
+        <span class="hljs-keyword">if</span> method <span class="hljs-keyword">in</span> avalible_method:
+            exe_method = method
+        <span class="hljs-keyword">else</span>:
+            <span class="hljs-keyword">return</span> <span class="hljs-string">&quot;there is invalide method ,avalible_method in [&apos;insert&apos;,&apos;select&apos;,&apos;update&apos;,&apos;delete&apos;]&quot;</span>
+
+        <span class="hljs-keyword">if</span> exe_method ==<span class="hljs-string">&quot;select&quot;</span>:
+            sql_str =<span class="hljs-string">&quot;select * from &quot;</span>+self.table+<span class="hljs-string">&quot; where &quot;</span>
+
+            <span class="hljs-keyword">if</span> len(args)&gt;<span class="hljs-number">0</span>:
+                <span class="hljs-keyword">for</span> key <span class="hljs-keyword">in</span> args:
+                    <span class="hljs-keyword">if</span> isinstance(args[key],str):
+                        sql_str+= str(key)+ <span class="hljs-string">&quot; = &apos;&quot;</span> +str(args[key])+<span class="hljs-string">&quot;&apos; and &quot;</span>
+                    <span class="hljs-keyword">else</span>:
+                        sql_str+= str(key)+ <span class="hljs-string">&quot; = &quot;</span> +str(args[key])+<span class="hljs-string">&quot; and &quot;</span>
+
+            <span class="hljs-keyword">return</span> sql_str.strip(<span class="hljs-string">&quot; and &quot;</span>)
+
+        <span class="hljs-keyword">elif</span> exe_method == <span class="hljs-string">&quot;insert&quot;</span>:
+            key= <span class="hljs-string">&quot; (&quot;</span>
+
+            key += <span class="hljs-string">&quot;&quot;</span>.join([i+<span class="hljs-string">&quot;,&quot;</span> <span class="hljs-keyword">for</span> i <span class="hljs-keyword">in</span> args]).strip(<span class="hljs-string">&quot;,&quot;</span>)
+            <span class="hljs-keyword">print</span> key
+            value=<span class="hljs-string">&quot;&quot;</span>
+            <span class="hljs-keyword">for</span> i <span class="hljs-keyword">in</span> args:
+                <span class="hljs-keyword">if</span> isinstance(args[i],str):
+                    value+=<span class="hljs-string">&quot;&apos;&quot;</span>+args[i]+<span class="hljs-string">&quot;&apos;,&quot;</span>
+                <span class="hljs-keyword">else</span>:
+                    value+= str(args[i])+<span class="hljs-string">&quot;,&quot;</span>
+            <span class="hljs-keyword">print</span> value
+            sql_str = <span class="hljs-string">&quot;insert into &quot;</span>+self.table+key+<span class="hljs-string">&quot;) values(&quot;</span>+value.strip(<span class="hljs-string">&quot;,&quot;</span>)+<span class="hljs-string">&quot;)&quot;</span>
+            <span class="hljs-keyword">return</span> sql_str
+
+
+        <span class="hljs-keyword">elif</span> exe_method ==<span class="hljs-string">&quot;update&quot;</span>:
+            strings=<span class="hljs-string">&quot;&quot;</span>
+            <span class="hljs-keyword">for</span> i <span class="hljs-keyword">in</span> args:
+                <span class="hljs-keyword">if</span> isinstance(args[i],str):
+
+                    strings += <span class="hljs-string">&quot; &quot;</span>+i+<span class="hljs-string">&quot;=&apos;&quot;</span>+args[i]+<span class="hljs-string">&quot;&apos;,&quot;</span>
+                <span class="hljs-keyword">else</span>:
+                    strings += <span class="hljs-string">&quot; &quot;</span>+i+<span class="hljs-string">&quot;=&quot;</span>+str(args[i])+<span class="hljs-string">&quot;,&quot;</span>
+            <span class="hljs-keyword">if</span> self.index==<span class="hljs-keyword">None</span>:
+                <span class="hljs-keyword">raise</span> DatabaseError(<span class="hljs-string">&quot;please instance the BaseModel&quot;</span>)
+            sql_str = <span class="hljs-string">&quot;update &quot;</span>+self.table+<span class="hljs-string">&quot; set &quot;</span>+strings.strip(<span class="hljs-string">&quot;,&quot;</span>)+<span class="hljs-string">&quot; where id=&quot;</span>+ str(self.index)
+            <span class="hljs-keyword">return</span> sql_str
+
+
+        <span class="hljs-keyword">elif</span> exe_method==<span class="hljs-string">&quot;delete&quot;</span>:
+            <span class="hljs-keyword">if</span> self.index ==<span class="hljs-keyword">None</span>:
+                <span class="hljs-keyword">raise</span> DatabaseError(<span class="hljs-string">&quot;please instance the BaseModel&quot;</span>)
+            sql_str = <span class="hljs-string">&quot;delete from &quot;</span>+self.table+<span class="hljs-string">&quot; where id = &quot;</span>+str(self.index)
+            <span class="hljs-keyword">return</span> sql_str
+    <span class="hljs-function"><span class="hljs-keyword">def</span> <span class="hljs-title">find</span><span class="hljs-params">(self,**args)</span>:</span>
+
+        sql= self.prepare_sql(<span class="hljs-string">&apos;select&apos;</span>,args)
+        <span class="hljs-keyword">print</span> sql
+        result = <span class="hljs-keyword">None</span>
+        <span class="hljs-keyword">try</span>:
+            self.cur.execute(sql)
+            result= self.cur.fetchall()
+        <span class="hljs-keyword">except</span> MySQLdb.Error,e:
+            <span class="hljs-keyword">print</span> <span class="hljs-string">&quot;Mysql Error %d: %s&quot;</span> % (e.args[<span class="hljs-number">0</span>], e.args[<span class="hljs-number">1</span>])
+        <span class="hljs-comment">#print isinstance(result[1][2],unicode)</span>
+        <span class="hljs-keyword">print</span> result 
+        <span class="hljs-keyword">return</span> result
+</code></pre>
+<p>&#x4E0B;&#x9762;&#x6765;&#x7B80;&#x5355;&#x7684;&#x89E3;&#x91CA;&#x4E00;&#x4E0B;&#x91CC;&#x9762;&#x7684;&#x51E0;&#x4E2A;&#x6838;&#x5FC3;&#x7684;&#x51FD;&#x6570;&#x7684;&#x4F5C;&#x7528;</p>
+<ol>
+<li>init()&#x51FD;&#x6570;&#x4E3B;&#x8981;&#x662F;&#x7528;&#x6765;&#x521D;&#x59CB;&#x5316;basemodel,&#x540C;&#x65F6;&#x5411;mysql&#x7C7B;&#x8FDE;&#x63A5;&#x6C60;&#x7533;&#x8BF7;&#x4E00;&#x4E2A;&#x8FDE;&#x63A5;,&#x540C;&#x65F6;&#x521D;&#x59CB;&#x5316;&#x4E00;&#x4E2A;&#x6E38;&#x6807;,</li>
+<li>del()&#x7684;&#x65B9;&#x6CD5;&#x4E3B;&#x8981;&#x662F;&#x5728;&#x8C03;&#x7528;&#x7C7B;&#x7ED3;&#x675F;&#x540E;&#x81EA;&#x52A8;&#x628A;&#x8FDE;&#x63A5;&#x5173;&#x95ED;,&#x628A;&#x8D44;&#x6E90;&#x7A7A;&#x51FA;&#x6765;&#x8FD8;&#x7ED9;&#x8FDE;&#x63A5;&#x6C60;.</li>
+<li>prepare_sql()&#x4E3B;&#x8981;&#x529F;&#x80FD;&#x662F;&#x62FC;&#x63A5;sql&#x539F;&#x751F;&#x8BED;&#x53E5;,&#x7136;&#x540E;&#x8FD4;&#x56DE;&#x8FD9;&#x4E2A;sql&#x8BED;&#x53E5;,</li>
+<li>find()&#x8FD9;&#x4E2A;&#x51FD;&#x6570;&#x5C31;&#x662F;&#x5177;&#x4F53;&#x7684;orm&#x529F;&#x80FD;&#x51FD;&#x6570;&#x4E86;,&#x7528;&#x6237;&#x53EF;&#x8C03;&#x7528;&#x8FD9;&#x4E2A;&#x65B9;&#x6CD5;&#x6765;&#x627E;&#x5230;&#x5339;&#x914D;&#x7684;&#x6570;&#x636E;&#x884C;.&#x540C;&#x65F6;&#x8FD8;&#x6709;&#x5176;&#x4ED6;&#x7684;get,insert,update.delete&#x7B49;&#x5E38;&#x7528;&#x7684;&#x65B9;&#x6CD5;,&#x5C31;&#x4E0D;&#x4E00;&#x4E00;&#x89E3;&#x91CA;&#x4E86;,&#x5F53;&#x7136;&#x4E5F;&#x53EF;&#x4EE5;&#x76F4;&#x63A5;&#x8C03;&#x7528;mysql&#x7C7B;&#x6765;&#x7533;&#x8BF7;&#x4E00;&#x4E2A;&#x8FDE;&#x63A5;,&#x76F4;&#x63A5;&#x8C03;&#x7528;cur.execute()&#x6765;&#x76F4;&#x63A5;&#x4F7F;&#x7528;&#x539F;&#x751F;&#x7684;sql&#x8BED;&#x53E5;.</li>
+</ol>
+<p>&#x5728;&#x4F7F;&#x7528;&#x7684;&#x65F6;&#x5019;&#x5927;&#x81F4;&#x53EF;&#x4EE5;&#x50CF;&#x4E0B;&#x9762;&#x7684;&#x4EE3;&#x7801;&#x793A;&#x4F8B;&#x90A3;&#x6837;&#x5B50;&#x4F7F;&#x7528;,&#x5F53;&#x7136;&#x8FD8;&#x6709;&#x66F4;&#x591A;&#x5F88;&#x7075;&#x6D3B;&#x7684;&#x7528;&#x6CD5;,iotshine&#x7684;orm&#x5E76;&#x6CA1;&#x6709;&#x505A;&#x592A;&#x591A;&#x7684;&#x5DE5;&#x4F5C;,&#x53EA;&#x662F;&#x505A;&#x4E86;&#x70B9;&#x7B80;&#x5355;&#x7684;&#x5C01;&#x88C5;.</p>
+<pre><code class="lang-python"><span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">device_sensor</span><span class="hljs-params">(BaseModel)</span>:</span>
+<span class="hljs-function"><span class="hljs-keyword">def</span> <span class="hljs-title">__init__</span><span class="hljs-params">(self,**args)</span>:</span>
+    super(device_sensor, self).__init__(self.__class__.__name__,args)
+    <span class="hljs-keyword">print</span> self.table
+<span class="hljs-keyword">if</span> __name__ == <span class="hljs-string">&quot;__main__&quot;</span>:
+    <span class="hljs-comment">#a = device_sensor().find(sensor_name=&quot;Int &#x4F20;&#x611F;&#x5668;&quot;)</span>
+    <span class="hljs-comment">#b = device_sensor().find(data_type=1)</span>
+
+    <span class="hljs-comment">#c = device_sensor().insert(sensor_name=&apos;outshine&apos;,sensor_slug=234,is_active=1,sensor_device_id=1,data_type=1)</span>
+    <span class="hljs-comment">#x.update(data_type=1,sensor_slug=233)</span>
+    <span class="hljs-comment">#b.update(data_type=1,sensor_slug=233)</span>
+</code></pre>
+<p>&#x76EE;&#x524D;&#x5728;orm&#x662F;&#x7B80;&#x5355;&#x7684;&#x4E0D;&#x80FD;&#x518D;&#x7B80;&#x5355;&#x7684;,&#x540E;&#x9762;&#x4F1A;&#x53C2;&#x8003;&#x5148;&#x8FDB;&#x7684;orm&#x8FDB;&#x884C;&#x4FEE;&#x6539;&#x4E2A;&#x6539;&#x8FDB;,&#x4E89;&#x53D6;&#x5728;&#x597D;&#x7528;&#x548C;&#x8F7B;&#x91CF;&#x4E4B;&#x4E2D;&#x505A;&#x5230;&#x5E73;&#x8861;</p>
+<p>&#x4E0B;&#x4E00;&#x7BC7;&#x8981;&#x8BB2;&#x8BB2;&#x5173;&#x4E8E;&#x5F02;&#x6B65;&#x4EFB;&#x52A1;&#x961F;&#x5217;,&#x5F02;&#x6B65;&#x4EFB;&#x52A1;&#x961F;&#x5217;&#x5BF9;&#x4E8E;&#x6211;&#x4EEC;&#x7684;&#x5E73;&#x53F0;&#x7684;&#x6027;&#x80FD;&#x662F;&#x5F88;&#x5173;&#x952E;&#x7684;&#x4E00;&#x6B65;,&#x5982;&#x679C;&#x6CA1;&#x6709;&#x5F02;&#x6B65;&#x961F;&#x5217;,&#x6211;&#x4EEC;&#x524D;&#x9762;&#x7684;epoll&#x6A21;&#x578B;&#x4E5F;&#x662F;&#x6CA1;&#x6709;&#x4EC0;&#x4E48;&#x7528;&#x7684;,&#x6BD5;&#x7ADF;&#x6570;&#x636E;&#x5E93;&#x8FDE;&#x63A5;&#x662F;&#x6D89;&#x53CA;&#x5230;io&#x963B;&#x585E;&#x7684;,&#x8FD9;&#x4E2A;&#x4F1A;&#x6781;&#x5927;&#x7684;&#x963B;&#x585E;&#x6574;&#x4E2A;&#x7EBF;&#x7A0B;.
+&#x4E0B;&#x4E00;&#x7BC7;&#x4E5F;&#x662F;&#x6211;&#x5728;2015&#x5E74;&#x6700;&#x540E;&#x4E00;&#x7BC7;, &#x540E;&#x9762;&#x7684;&#x5F00;&#x53D1;&#x548C;&#x5B8C;&#x5584;&#x8981;&#x7B49;&#x8003;&#x8BD5;&#x6708;&#x7ED3;&#x675F;&#x540E;&#x5BD2;&#x5047;&#x56DE;&#x5BB6;&#x5B89;&#x5B89;&#x9759;&#x9759;&#x7684;&#x5F00;&#x53D1;&#x4E86;</p>
+<p><br><br><div style="text-align: center;color:gray;">Copyright &#xA9; 2019 <a href="https://github.com/outshineamaze/iotshine" target="_blank">outshineamaze</a>.<br>All rights reserved.</div></p>
+<script type="text/javascript">var targetUl = document.getElementsByClassName('page-inner')[0].getElementsByTagName('ul')[0];if(targetUl.getElementsByTagName('a').length>0){targetUl.className='toc';}</script>
+                                
+                                </section>
+                            
+    </div>
+    <div class="search-results">
+        <div class="has-results">
+            
+            <h1 class="search-results-title"><span class='search-results-count'></span> results matching "<span class='search-query'></span>"</h1>
+            <ul class="search-results-list"></ul>
+            
+        </div>
+        <div class="no-results">
+            
+            <h1 class="search-results-title">No results matching "<span class='search-query'></span>"</h1>
+            
+        </div>
+    </div>
+</div>
+
+                        </div>
+                    </div>
+                
+            </div>
+
+            
+                
+                <a href="6.服务器入口.html" class="navigation navigation-prev " aria-label="Previous page: 服务器入口">
+                    <i class="fa fa-angle-left"></i>
+                </a>
+                
+                
+                <a href="8.celery分布式任务队列.html" class="navigation navigation-next " aria-label="Next page: celery分布式任务队列">
+                    <i class="fa fa-angle-right"></i>
+                </a>
+                
+            
+        
+    </div>
+
+    <script>
+        var gitbook = gitbook || [];
+        gitbook.push(function() {
+            gitbook.page.hasChanged({"page":{"title":"实现一个最简陋的orm","tags":"iotshine","date":"2015/9","level":"1.7","depth":1,"next":{"title":"celery分布式任务队列","level":"1.8","depth":1,"path":"8.celery分布式任务队列.md","ref":"8.celery分布式任务队列.md","articles":[]},"previous":{"title":"服务器入口","level":"1.6","depth":1,"path":"6.服务器入口.md","ref":"6.服务器入口.md","articles":[]},"dir":"ltr"},"config":{"gitbook":"*","theme":"default","variables":{},"plugins":["signature","-sharing","-lunr","-search","search-pro","github","toc"],"pluginsConfig":{"gitbook-plugin-signature":{"autoCopyright":{"color":"gray","owner":"<a href='https://github.com/outshineamaze/iotshine' target='_blank'>outshineamaze</a>","center":true}},"github":{"url":"https://github.com/outshineamaze/iotshine"},"toc":{"addClass":true,"className":"toc"},"signature":{},"search-pro":{},"highlight":{},"fontsettings":{"theme":"white","family":"sans","size":2},"theme-default":{"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"},"showLevel":false}},"structure":{"langs":"LANGS.md","readme":"README.md","glossary":"GLOSSARY.md","summary":"SUMMARY.md"},"pdf":{"pageNumbers":true,"fontSize":12,"fontFamily":"Arial","paperSize":"a4","chapterMark":"pagebreak","pageBreaksBefore":"/","margin":{"right":62,"left":62,"top":56,"bottom":56}},"styles":{"website":"style/website.css"}},"file":{"path":"7.来一个最简陋的orm.md","mtime":"2019-01-25T09:27:59.017Z","type":"markdown"},"gitbook":{"version":"3.2.3","time":"2019-01-26T08:49:16.745Z"},"basePath":".","book":{"language":""}});
+        });
+    </script>
+</div>
+
+        
+    <script src="gitbook/gitbook.js"></script>
+    <script src="gitbook/theme.js"></script>
+    
+        
+        <script src="gitbook/gitbook-plugin-search-pro/jquery.mark.min.js"></script>
+        
+    
+        
+        <script src="gitbook/gitbook-plugin-search-pro/search.js"></script>
+        
+    
+        
+        <script src="gitbook/gitbook-plugin-github/plugin.js"></script>
+        
+    
+        
+        <script src="gitbook/gitbook-plugin-fontsettings/fontsettings.js"></script>
+        
+    
+
+    </body>
+</html>
+

@@ -1,0 +1,559 @@
+
+<!DOCTYPE HTML>
+<html lang="" >
+    <head>
+        <meta charset="UTF-8">
+        <meta content="text/html; charset=utf-8" http-equiv="Content-Type">
+        <title>IO复用 · GitBook</title>
+        <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+        <meta name="description" content="">
+        <meta name="generator" content="GitBook 3.2.3">
+        
+        
+        
+    
+    <link rel="stylesheet" href="gitbook/style.css">
+
+    
+            
+                
+                <link rel="stylesheet" href="gitbook/gitbook-plugin-search-pro/search.css">
+                
+            
+                
+                <link rel="stylesheet" href="gitbook/gitbook-plugin-highlight/website.css">
+                
+            
+                
+                <link rel="stylesheet" href="gitbook/gitbook-plugin-fontsettings/website.css">
+                
+            
+        
+
+    
+
+    
+        
+        <link rel="stylesheet" href="style/website.css">
+        
+    
+
+        
+    
+    
+    <meta name="HandheldFriendly" content="true"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black">
+    <link rel="apple-touch-icon-precomposed" sizes="152x152" href="gitbook/images/apple-touch-icon-precomposed-152.png">
+    <link rel="shortcut icon" href="gitbook/images/favicon.ico" type="image/x-icon">
+
+    
+    <link rel="next" href="4.httpserver实现.html" />
+    
+    
+    <link rel="prev" href="2.硬件负载服务器开始.html" />
+    
+
+    </head>
+    <body>
+        
+<div class="book">
+    <div class="book-summary">
+        
+            
+<div id="book-search-input" role="search">
+    <input type="text" placeholder="Type to search" />
+</div>
+
+            
+                <nav role="navigation">
+                
+
+
+<ul class="summary">
+    
+    
+
+    
+
+    
+        
+        
+    
+        <li class="chapter " data-level="1.1" data-path="./">
+            
+                <a href="./">
+            
+                    
+                    简介
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.2" data-path="2.硬件负载服务器开始.html">
+            
+                <a href="2.硬件负载服务器开始.html">
+            
+                    
+                    硬件负载服务器开始
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter active" data-level="1.3" data-path="3.io复用的应用.html">
+            
+                <a href="3.io复用的应用.html">
+            
+                    
+                    IO复用
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.4" data-path="4.httpserver实现.html">
+            
+                <a href="4.httpserver实现.html">
+            
+                    
+                    httpserver实现
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.5" data-path="5.应用层入口application.html">
+            
+                <a href="5.应用层入口application.html">
+            
+                    
+                    应用层入口application
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.6" data-path="6.服务器入口.html">
+            
+                <a href="6.服务器入口.html">
+            
+                    
+                    服务器入口
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.7" data-path="7.来一个最简陋的orm.html">
+            
+                <a href="7.来一个最简陋的orm.html">
+            
+                    
+                    实现一个最简陋的orm
+            
+                </a>
+            
+
+            
+        </li>
+    
+        <li class="chapter " data-level="1.8" data-path="8.celery分布式任务队列.html">
+            
+                <a href="8.celery分布式任务队列.html">
+            
+                    
+                    celery分布式任务队列
+            
+                </a>
+            
+
+            
+        </li>
+    
+
+    
+
+    <li class="divider"></li>
+
+    <li>
+        <a href="https://www.gitbook.com" target="blank" class="gitbook-link">
+            Published with GitBook
+        </a>
+    </li>
+</ul>
+
+
+                </nav>
+            
+        
+    </div>
+
+    <div class="book-body">
+        
+            <div class="body-inner">
+                
+                    
+
+<div class="book-header" role="navigation">
+    
+
+    <!-- Title -->
+    <h1>
+        <i class="fa fa-circle-o-notch fa-spin"></i>
+        <a href="." >IO复用</a>
+    </h1>
+</div>
+
+
+
+
+                    <div class="page-wrapper" tabindex="-1" role="main">
+                        <div class="page-inner">
+                            
+<div id="book-search-results">
+    <div class="search-noresults">
+    
+                                <section class="normal markdown-section">
+                                
+                                <p>&#x4E0A;&#x4E00;&#x8282;&#x7B80;&#x5355;&#x5730;&#x4ECB;&#x7ECD;&#x4E86;&#x5173;&#x4E8E;io&#x670D;&#x7528; epoll&#x548C;select &#x7684;&#x6A21;&#x578B;&#x6982;&#x5FF5;
+&#x8FD9;&#x4E00;&#x7BC7;&#x6587;&#x7AE0;&#x4E3B;&#x8981;&#x6765;&#x8BB2;&#x8BB2;&#x5982;&#x4F55;&#x5728;&#x9879;&#x76EE;&#x4E2D;&#x4F7F;&#x7528;&#x8FD9;&#x79CD;&#x6A21;&#x578B;
+<!-- more --></p>
+<h5 id="&#x4E0B;&#x9762;&#x662F;&#x4E00;&#x4E2A;&#x6700;&#x57FA;&#x672C;&#x7684;epoll-&#x6A21;&#x578B;&#x7684;&#x4F7F;&#x7528;&#x7684;&#x4EE3;&#x7801;">&#x4E0B;&#x9762;&#x662F;&#x4E00;&#x4E2A;&#x6700;&#x57FA;&#x672C;&#x7684;epoll &#x6A21;&#x578B;&#x7684;&#x4F7F;&#x7528;&#x7684;&#x4EE3;&#x7801;:</h5>
+<pre><code class="lang-python"><span class="hljs-comment">#!/usr/bin/python</span>
+<span class="hljs-comment"># -*- coding: utf-8 -*-</span>
+<span class="hljs-keyword">import</span> socket
+<span class="hljs-keyword">import</span> select
+<span class="hljs-keyword">import</span> Queue
+server =  socket.socket(socket.AF_INET,socket.SOCK_STREAM)
+server.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, <span class="hljs-number">1</span>)
+server_address = (<span class="hljs-string">&quot;127.0.0.1&quot;</span>, <span class="hljs-number">8888</span>)
+timeout  = <span class="hljs-number">10</span>
+server.bind(server_address)
+server.listen(<span class="hljs-number">5</span>)
+<span class="hljs-keyword">print</span> <span class="hljs-string">&apos;server is running listen ip &apos;</span>,server_address
+server =  socket.socket(socket.AF_INET,socket.SOCK_STREAM)
+server.setblocking(<span class="hljs-number">0</span>)
+epoll= select.epoll()
+epoll.register(server,fileno(),select.EPOLLIN)
+message_queues ={}
+fd_to_socket = {server.fileno():server}
+<span class="hljs-keyword">while</span> <span class="hljs-keyword">True</span>:
+    <span class="hljs-keyword">print</span> <span class="hljs-string">&quot;waiting for connecting .........&quot;</span>
+    events = epoll.poll(timeout )
+    <span class="hljs-keyword">if</span> <span class="hljs-keyword">not</span> events:
+        <span class="hljs-keyword">print</span> <span class="hljs-string">&apos;there is no events for connecting...&apos;</span>
+        <span class="hljs-keyword">continue</span>
+    <span class="hljs-keyword">for</span> fd,event <span class="hljs-keyword">in</span> events:
+        socket  =  fd_to_socket[fd]
+        <span class="hljs-keyword">if</span> socket &amp; select.EPOLLIN:
+            <span class="hljs-keyword">if</span> socket == server:
+                connection ,address = server.accept()
+                <span class="hljs-keyword">print</span> <span class="hljs-string">&apos;new connection &apos;</span>,address
+                connection.setblocking(<span class="hljs-number">0</span>)
+                epoll.register(connection.fileno(),select.EPOLLIN)
+                fd_to_socket[connection.fileno()]= connection
+                message_queues[connection] =Queue.Queue()
+            <span class="hljs-keyword">else</span>:
+                data = socket.recv(<span class="hljs-number">1024</span>)
+                <span class="hljs-keyword">if</span> data :
+                    <span class="hljs-keyword">print</span> <span class="hljs-string">&apos;recv data &apos;</span>,data,<span class="hljs-string">&apos;client :&apos;</span> ,socket.getpeername()
+                    message_queues[socket].put(data)
+                    epoll.modify(fd,select.EPOLLOUT)
+        <span class="hljs-keyword">elif</span> event &amp;select.EPOLLOUT:
+            <span class="hljs-keyword">try</span> :
+                msg = message_queues(socket).get_nowait()
+            <span class="hljs-keyword">except</span> Queue.Empty:
+                <span class="hljs-keyword">print</span> <span class="hljs-string">&apos;quere Empty&apos;</span>,socket.getpeername()
+                epoll.moddify(fd,select.EPOLLIN)
+            <span class="hljs-keyword">else</span>:
+                <span class="hljs-keyword">print</span> <span class="hljs-string">&apos;send data:&apos;</span>,data,<span class="hljs-string">&apos;&gt;&gt;&gt;client :&apos;</span>,socket.getpeername()
+                socket.sendall(msg)
+        <span class="hljs-keyword">elif</span> event &amp;select.EPOLLHUB:
+            epoll.unregister(fd)
+            fd_to_socket[fd].close()
+            <span class="hljs-keyword">del</span> fd_to_socket[fd]
+epoll.unregister(server.fileno())
+epoll.close()
+server.close()
+</code></pre>
+<p>&#x4E0B;&#x9762;&#x8FD9;&#x4E2A;&#x662F;&#x4E00;&#x4E2A;&#x57FA;&#x4E8E;select &#x6A21;&#x578B;&#x804A;&#x5929;&#x670D;&#x52A1;&#x5668;&#x7684;&#x793A;&#x4F8B;&#x4EE3;&#x7801;,
+&#x4E3B;&#x8981;&#x7684;&#x662F;&#x4F7F;&#x7528;select&#x6A21;&#x578B;&#x6765;&#x76D1;&#x63A7;&#x591A;&#x4E2A;socket&#x6587;&#x4EF6;&#x63CF;&#x8FF0;&#x7B26;:</p>
+<pre><code class="lang-python"><span class="hljs-comment">#!/usr/bin/python</span>
+<span class="hljs-comment">#coding:utf-8</span>
+<span class="hljs-keyword">import</span> sys
+<span class="hljs-keyword">import</span> socket 
+<span class="hljs-keyword">import</span> select
+<span class="hljs-keyword">import</span> time
+<span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">chatserver</span><span class="hljs-params">(object)</span>:</span>
+    <span class="hljs-function"><span class="hljs-keyword">def</span> <span class="hljs-title">__init__</span><span class="hljs-params">(self, host,port,timeout =<span class="hljs-number">10</span>,request_size=<span class="hljs-number">10</span>)</span>:</span>
+        self.clients = <span class="hljs-number">0</span>
+        self.clientmap={}
+        self.outputs = []
+        self.server.setsockopt( socket.SOL_SOCKET, socket.SO_REUSEADDR, <span class="hljs-number">1</span> )
+        self.server.bind((host,port))
+        self.server.listen(request_size)
+    <span class="hljs-function"><span class="hljs-keyword">def</span> <span class="hljs-title">run</span><span class="hljs-params">(self)</span>:</span>
+        status = <span class="hljs-string">&apos;200 OK&apos;</span>
+        response =<span class="hljs-string">&apos;HTTP1.1/ {status}\r\n&apos;</span>.format(status = status)
+        response_headers = <span class="hljs-string">&apos;Content-Type:text/plain&apos;</span>
+        response +=response_headers
+        response +=<span class="hljs-string">&apos;\r\n\r\n&apos;</span>
+        head = response
+        <span class="hljs-keyword">print</span> <span class="hljs-string">&apos;&gt;start run server head is &lt;&apos;</span>
+        input = [self.server]
+        running = <span class="hljs-keyword">True</span>
+        <span class="hljs-keyword">while</span> running:
+            <span class="hljs-keyword">try</span> :
+                readble,writeable,exception = select.select(input,self.outputs,[])
+            <span class="hljs-keyword">except</span> select.error,e:
+                <span class="hljs-keyword">break</span>    
+            <span class="hljs-keyword">for</span> sock <span class="hljs-keyword">in</span> readble:
+                <span class="hljs-keyword">print</span> <span class="hljs-string">&apos;find ready fd in socketobject.......&apos;</span>
+
+                <span class="hljs-keyword">if</span> sock <span class="hljs-keyword">is</span> self.server:
+                    client ,addr  = self.server.accept()
+                    client.setblocking(<span class="hljs-number">0</span>)
+                    <span class="hljs-keyword">print</span> <span class="hljs-string">&apos;&gt;&gt;&gt;new connect from client %s&apos;</span>%str(addr)
+                    self.clients +=<span class="hljs-number">1</span>
+                    <span class="hljs-keyword">print</span> <span class="hljs-string">&quot;client number is :&quot;</span>+str(self.clients)
+                    self.outputs.append(client)
+                    self.clientmap[client]=addr
+                    input.append(client)
+                <span class="hljs-keyword">else</span> :
+                    <span class="hljs-keyword">try</span>:
+                        data = sock.recv(<span class="hljs-number">1024</span>)
+                    <span class="hljs-keyword">except</span> socket.error,e:
+                        <span class="hljs-keyword">print</span> <span class="hljs-string">&quot;Error receiving data: %s&quot;</span>%e
+                        data=<span class="hljs-keyword">False</span>
+                    <span class="hljs-keyword">if</span> data:
+                        result  =response+ <span class="hljs-string">&apos;this is response from server&apos;</span>
+                        <span class="hljs-keyword">print</span> <span class="hljs-string">&quot;this is response:\n&quot;</span>
+                        <span class="hljs-keyword">print</span> result
+                        sock.sendall(result)
+                        <span class="hljs-keyword">print</span> <span class="hljs-string">&apos;\nsuccess return response\n&apos;</span>
+                        <span class="hljs-keyword">if</span> sock <span class="hljs-keyword">in</span> self.outputs:self.outputs.remove(sock)
+                        <span class="hljs-keyword">print</span> <span class="hljs-string">&apos;\nclose connection&apos;</span>
+                        input.remove(sock)
+                        sock.close()
+                    <span class="hljs-keyword">else</span>:
+                        <span class="hljs-keyword">if</span> sock <span class="hljs-keyword">in</span> self.outputs:self.outputs.remove(sock)
+                        <span class="hljs-keyword">print</span> <span class="hljs-string">&apos;no message from client&apos;</span>
+                        input.remove(sock)
+                        sock.close()
+        self.server.close()
+<span class="hljs-keyword">if</span> __name__ == <span class="hljs-string">&apos;__main__&apos;</span>:
+    server = chatserver(<span class="hljs-string">&apos;&apos;</span>,<span class="hljs-number">8888</span>)
+    server.run()
+</code></pre>
+<p>&#x4E0A;&#x9762;&#x7528;&#x5F88;&#x7B80;&#x77ED;&#x7684;&#x4EE3;&#x7801;&#x5C31;&#x5B9E;&#x73B0;&#x4E86;&#x4E00;&#x4E2A;&#x5728;Windows&#x53EF;&#x4EE5;&#x8FD0;&#x884C;&#x7684;&#x804A;&#x5929;&#x670D;&#x52A1;&#x5668;&#x4E86;,&#x540C;&#x6837;&#x7684;&#x5982;&#x679C;&#x5728;Linux&#x4E0A;&#x9762;&#x8FD0;&#x884C;&#x7684;&#x8BDD;&#x5B8C;&#x5168;&#x53EF;&#x4EE5;&#x4F7F;&#x7528;epoll&#x6765;&#x4EE3;&#x66FF;select.</p>
+<p>&#x4E0B;&#x9762;&#x662F;&#x4E00;&#x4E2A;&#x5F88;&#x7B80;&#x4ECB;&#x7684;&#x5BA2;&#x6237;&#x7AEF;&#x7A0B;&#x5E8F;,&#x867D;&#x7136;&#x5C31;&#x51E0;&#x884C;&#x4EE3;&#x7801;&#x4F46;&#x662F;&#x5B8C;&#x5168;&#x53EF;&#x4EE5;&#x4F7F;&#x7528;&#x8FDB;&#x884C;&#x57FA;&#x672C;&#x7684;&#x94FE;&#x63A5;&#x6D4B;&#x8BD5;,&#x5728;&#x4EE5;&#x540E;&#x7684;&#x9879;&#x76EE;&#x4E2D;&#x4E5F;&#x4F1A;&#x7ECF;&#x5E38;&#x88AB;&#x7528;&#x5230;</p>
+<pre><code class="lang-python"><span class="hljs-comment">#!/usr/bin/python</span>
+<span class="hljs-keyword">import</span> socket
+<span class="hljs-comment"># create an INET, STREAMing socket</span>
+s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+<span class="hljs-comment"># now connect to the web server on port 80 - the normal http port</span>
+s.connect((<span class="hljs-string">&quot;127.0.0.1&quot;</span>, <span class="hljs-number">8888</span>))
+s.sendall(<span class="hljs-string">&apos;GET HTTP1.x/ &apos;</span>)
+clientsocket, address = s.accept()
+result = clientsocket.recv(<span class="hljs-number">1024</span>)
+<span class="hljs-keyword">print</span> result
+s.close
+</code></pre>
+<h4 id="&#x597D;&#x4E86;&#x8D34;&#x4E86;&#x8FD9;&#x4E48;&#x591A;&#x7684;&#x4EE3;&#x7801;&#x6211;&#x4EEC;&#x6765;&#x8BF4;&#x8BF4;&#x6211;&#x4EEC;&#x7684;&#x5E73;&#x53F0;&#x662F;&#x5982;&#x4F55;&#x4F7F;&#x7528;&#x8FD9;&#x4E2A;epoll&#x548C;select-io&#x590D;&#x7528;&#x6A21;&#x578B;&#x7684;">&#x597D;&#x4E86;,&#x8D34;&#x4E86;&#x8FD9;&#x4E48;&#x591A;&#x7684;&#x4EE3;&#x7801;,&#x6211;&#x4EEC;&#x6765;&#x8BF4;&#x8BF4;&#x6211;&#x4EEC;&#x7684;&#x5E73;&#x53F0;&#x662F;&#x5982;&#x4F55;&#x4F7F;&#x7528;&#x8FD9;&#x4E2A;epoll&#x548C;select io&#x590D;&#x7528;&#x6A21;&#x578B;&#x7684;:</h4>
+<p>&#x9996;&#x5148;&#x6765;&#x8D34;&#x4E00;&#x4E0B;&#x6211;&#x4EEC;&#x7684; loop.py &#x6587;&#x4EF6;&#x7684;&#x4EE3;&#x7801;,&#x8FD9;&#x4E2A;&#x6587;&#x4EF6;&#x4E3B;&#x8981;&#x6709;&#x4E24;&#x4E2A;&#x7C7B;,&#x5206;&#x522B;&#x628A;select&#x548C;epoll&#x6A21;&#x578B;&#x5C01;&#x88C5;&#x597D;,
+&#x56E0;&#x4E3A;&#x7BC7;&#x5E45;&#x7684;&#x95EE;&#x9898;&#x6211;&#x5C31;&#x7B80;&#x5355;&#x7684;&#x628A;&#x6838;&#x5FC3;&#x7684;&#x4EE3;&#x7801;&#x8D34;&#x51FA;&#x6765;,&#x5E76;&#x4E14;&#x628A;&#x6CE8;&#x91CA;&#x4E5F;&#x5220;&#x9664;&#x6389;,&#x5F53;&#x7136;&#x540E;&#x9762;&#x8FD9;&#x90E8;&#x5206;&#x7684;&#x4EE3;&#x7801;&#x4E5F;&#x4F1A;&#x7EE7;&#x7EED;&#x5B8C;&#x5584;&#x7684;,&#x5177;&#x4F53;&#x7684;&#x67E5;&#x8003;github&#x4E0A;&#x9762;&#x7684;&#x6E90;&#x4EE3;&#x7801;.</p>
+<pre><code class="lang-python"><span class="hljs-comment">#!/usr/bin/python</span>
+<span class="hljs-comment">#coding:utf-8</span>
+<span class="hljs-keyword">import</span> sys
+<span class="hljs-keyword">import</span> os
+<span class="hljs-keyword">import</span> select
+<span class="hljs-keyword">import</span> threading
+<span class="hljs-keyword">import</span> time
+<span class="hljs-keyword">import</span> select
+<span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">SelectLoop</span><span class="hljs-params">(object)</span>:</span>
+    <span class="hljs-function"><span class="hljs-keyword">def</span> <span class="hljs-title">__init__</span><span class="hljs-params">(self,server,timeout,callback)</span>:</span>
+        self.server= server
+        self.timeout = timeout
+        self.callback = callback
+    <span class="hljs-function"><span class="hljs-keyword">def</span> <span class="hljs-title">start</span><span class="hljs-params">(self)</span>:</span>
+        <span class="hljs-keyword">print</span> <span class="hljs-string">&apos;start main select loop&apos;</span>
+        input = [self.server]
+        output = []
+        running = <span class="hljs-keyword">True</span>
+        <span class="hljs-keyword">while</span> running:
+            <span class="hljs-keyword">try</span> :
+                readble,writeable,exception = select.select(input,output,[])
+            <span class="hljs-keyword">except</span> select.error,e:
+                <span class="hljs-keyword">break</span>    
+            <span class="hljs-keyword">for</span> sock <span class="hljs-keyword">in</span> readble:
+                <span class="hljs-keyword">if</span> sock <span class="hljs-keyword">is</span> self.server:
+                    client ,addr  = self.server.accept()
+                    client.setblocking(<span class="hljs-number">0</span>)
+                    <span class="hljs-keyword">print</span> <span class="hljs-string">&apos;&gt;&gt;&gt;new connect from client %s&apos;</span>%str(addr)
+                    input.append(client)
+                <span class="hljs-keyword">else</span> :
+                    <span class="hljs-keyword">try</span>:
+                        data = sock.recv(<span class="hljs-number">1024</span>)
+                    <span class="hljs-keyword">except</span> socket.error,e:
+                        <span class="hljs-keyword">print</span> <span class="hljs-string">&quot;&gt;&gt;&gt;&gt;&gt;&gt;&gt;Error receiving data: %s&quot;</span>%e
+                        data=<span class="hljs-keyword">False</span>
+                    <span class="hljs-keyword">if</span> data:
+                        <span class="hljs-keyword">print</span> <span class="hljs-string">&quot;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;this is response&quot;</span>
+                        result = self.callback(data)
+                        <span class="hljs-keyword">print</span> result
+
+                        sock.sendall(result)
+                        <span class="hljs-keyword">print</span> <span class="hljs-string">&apos;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;success return response&apos;</span>
+                        input.remove(sock)
+                        sock.close()        
+                    <span class="hljs-keyword">else</span>:
+                        <span class="hljs-keyword">print</span> <span class="hljs-string">&apos;&gt;&gt;&gt;&gt;&gt;&gt;no message from client&apos;</span>
+                        input.remove(sock)
+                        sock.close()
+        self.server.close()
+<span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">EPollLoop</span><span class="hljs-params">(object)</span>:</span>
+    <span class="hljs-function"><span class="hljs-keyword">def</span> <span class="hljs-title">__init__</span><span class="hljs-params">(self,server,timeout,callback)</span>:</span>
+        self.callback= callback
+        self.timeout = timeout
+        self.server = server
+        self.server.setblocking(<span class="hljs-number">0</span>)
+        self.epoll= select.epoll()
+        self.epoll.register(self.server.fileno(),select.EPOLLIN)
+        self.fd_to_socket = {self.server.fileno():self.server}
+    <span class="hljs-function"><span class="hljs-keyword">def</span> <span class="hljs-title">start</span><span class="hljs-params">(self)</span>:</span>
+        <span class="hljs-keyword">while</span> <span class="hljs-keyword">True</span>:
+            <span class="hljs-keyword">print</span> <span class="hljs-string">&quot;waiting for connecting .........&quot;</span>
+            events = self.epoll.poll(self.timeout)
+            <span class="hljs-keyword">if</span> <span class="hljs-keyword">not</span> events:
+                <span class="hljs-keyword">print</span> <span class="hljs-string">&apos;there is no events for connecting...&apos;</span>
+                <span class="hljs-keyword">continue</span>
+            <span class="hljs-keyword">for</span> fd,event <span class="hljs-keyword">in</span> events:
+                socket  =  self.fd_to_socket[fd]
+                <span class="hljs-keyword">print</span> <span class="hljs-string">&apos;activate client socket&apos;</span>
+                <span class="hljs-keyword">if</span> socket <span class="hljs-keyword">and</span> select.EPOLLIN:
+                    <span class="hljs-keyword">if</span> socket == self.server:
+                        connection ,address = self.server.accept()
+                        <span class="hljs-keyword">print</span> <span class="hljs-string">&apos;new connection &apos;</span>,address
+                        connection.setblocking(<span class="hljs-number">0</span>)
+                        self.epoll.register(connection.fileno(),select.EPOLLIN)
+                        self.fd_to_socket[connection.fileno()]= connection
+                    <span class="hljs-keyword">else</span>:
+                        <span class="hljs-keyword">try</span>:
+                            data = socket.recv(<span class="hljs-number">1024</span>)
+                        <span class="hljs-keyword">except</span>:
+                            data= <span class="hljs-keyword">False</span>
+                        <span class="hljs-keyword">if</span> data :
+                            <span class="hljs-keyword">print</span> <span class="hljs-string">&apos;recv data client :&apos;</span> ,socket.getpeername()
+                            result = self.callback(data)
+                            socket.sendall(result)
+                            <span class="hljs-keyword">print</span> <span class="hljs-string">&apos;send data:&apos;</span>,data,<span class="hljs-string">&apos;&gt;&gt;&gt;client :&apos;</span>,socket.getpeername()
+                            self.epoll.unregister(fd)
+                            self.fd_to_socket[fd].close()
+                            <span class="hljs-keyword">del</span> self.fd_to_socket[fd]
+                        <span class="hljs-keyword">else</span>:
+                            <span class="hljs-keyword">print</span> <span class="hljs-string">&apos;close  client connection &apos;</span>,socket.getpeername()
+                            self.epoll.unregister(fd)
+                            self.fd_to_socket[fd].close()
+                            <span class="hljs-keyword">del</span> self.fd_to_socket[fd]                        
+                <span class="hljs-keyword">elif</span> event <span class="hljs-keyword">and</span> select.EPOLLHUB:
+                    self.epoll.unregister(fd)
+                    self.fd_to_socket[fd].close()
+                    <span class="hljs-keyword">del</span> self.fd_to_socket[fd]
+
+        self.epoll.unregister(server.fileno())
+        self.epoll.close()
+        self.server.close()
+</code></pre>
+<p>&#x6211;&#x4EEC;&#x53EF;&#x4EE5;&#x770B;&#x5230;,&#x5176;&#x5B9E;&#x8FD9;&#x4E2A;loop.py&#x6587;&#x4EF6;&#x5C31;&#x662F;&#x76F8;&#x5F53;&#x4E8E;&#x628A;&#x672C;&#x7BC7;&#x6587;&#x7AE0;&#x6700;&#x5F00;&#x59CB;&#x7684;&#x90A3;&#x4E24;&#x7AEF;&#x4EE3;&#x7801;&#x7B80;&#x5355;&#x5C01;&#x88C5;&#x4E86;&#x4E00;&#x4E0B;&#x800C;&#x5DF2;.</p>
+<p> <strong>init</strong>() &#x65B9;&#x6CD5;&#x4E3B;&#x8981;&#x7528;&#x6765;&#x521D;&#x59CB;&#x5316;&#x6211;&#x4EEC;&#x7684;io&#x6A21;&#x578B;&#x7C7B;,&#x4E3B;&#x8981;&#x4F20;&#x5165;&#x4E09;&#x4E2A;&#x53C2;&#x6570;:server,timeout,callback .</p>
+<p> &#x5728;&#x521D;&#x59CB;&#x5316;&#x7684;&#x540C;&#x65F6; &#x628A;socket&#x5BF9;&#x8C61;&#x4F20;&#x5165;,&#x540C;&#x65F6;&#x4E5F;&#x628A;&#x56DE;&#x8C03;&#x51FD;&#x6570;&#x4E5F;&#x4F20;&#x5165;.</p>
+<p>&#x7B80;&#x5355;&#x7684;&#x6765;&#x8BF4;loop.py&#x91CC;&#x9762;&#x7684;&#x6587;&#x4EF6;&#x4E3B;&#x8981;&#x662F;&#x628A;select&#x6A21;&#x578B;&#x548C;epoll &#x6A21;&#x578B;&#x5C01;&#x88C5;&#x8D77;&#x6765;,&#x7136;&#x540E;&#x5728;httpserver.py&#x5C31;&#x53EF;&#x4EE5;&#x81EA;&#x5DF1;&#x8C03;&#x7528;&#x4E86;.(&#x6CE8;;httpserver &#x5B9E;&#x73B0;tcp&#x548C;http&#x5E94;&#x7528;&#x7684;&#x4E3B;&#x8981;&#x4F4D;&#x7F6E;)</p>
+<h5 id="&#x4E0B;&#x4E00;&#x7BC7;&#x6587;&#x7AE0;&#x6765;&#x8BB2;&#x4E00;&#x4E0B;&#x5728;&#x5728;&#x8FD9;&#x4E2A;&#x9879;&#x76EE;&#x4E2D;&#x662F;&#x5982;&#x4F55;&#x5B9E;&#x73B0;&#x4E00;&#x4E2A;&#x57FA;&#x672C;&#x7684;http-server&#x91CC;&#x9762;&#x4F1A;&#x7528;&#x5230;&#x8FD9;&#x7BC7;&#x6587;&#x7AE0;&#x8BB2;&#x5230;&#x7684;looppy&#x91CC;&#x9762;&#x7684;selectloop&#x548C;epollloop&#x7C7B;">&#x4E0B;&#x4E00;&#x7BC7;&#x6587;&#x7AE0;&#x6765;&#x8BB2;&#x4E00;&#x4E0B;&#x5728;&#x5728;&#x8FD9;&#x4E2A;&#x9879;&#x76EE;&#x4E2D;&#x662F;&#x5982;&#x4F55;&#x5B9E;&#x73B0;&#x4E00;&#x4E2A;&#x57FA;&#x672C;&#x7684;http server,&#x91CC;&#x9762;&#x4F1A;&#x7528;&#x5230;&#x8FD9;&#x7BC7;&#x6587;&#x7AE0;&#x8BB2;&#x5230;&#x7684;loop.py&#x91CC;&#x9762;&#x7684;selectloop&#x548C;epollloop&#x7C7B;</h5>
+<p><br><br><div style="text-align: center;color:gray;">Copyright &#xA9; 2019 <a href="https://github.com/outshineamaze/iotshine" target="_blank">outshineamaze</a>.<br>All rights reserved.</div></p>
+<script type="text/javascript">var targetUl = document.getElementsByClassName('page-inner')[0].getElementsByTagName('ul')[0];if(targetUl.getElementsByTagName('a').length>0){targetUl.className='toc';}</script>
+                                
+                                </section>
+                            
+    </div>
+    <div class="search-results">
+        <div class="has-results">
+            
+            <h1 class="search-results-title"><span class='search-results-count'></span> results matching "<span class='search-query'></span>"</h1>
+            <ul class="search-results-list"></ul>
+            
+        </div>
+        <div class="no-results">
+            
+            <h1 class="search-results-title">No results matching "<span class='search-query'></span>"</h1>
+            
+        </div>
+    </div>
+</div>
+
+                        </div>
+                    </div>
+                
+            </div>
+
+            
+                
+                <a href="2.硬件负载服务器开始.html" class="navigation navigation-prev " aria-label="Previous page: 硬件负载服务器开始">
+                    <i class="fa fa-angle-left"></i>
+                </a>
+                
+                
+                <a href="4.httpserver实现.html" class="navigation navigation-next " aria-label="Next page: httpserver实现">
+                    <i class="fa fa-angle-right"></i>
+                </a>
+                
+            
+        
+    </div>
+
+    <script>
+        var gitbook = gitbook || [];
+        gitbook.push(function() {
+            gitbook.page.hasChanged({"page":{"title":"IO复用","tags":"iotshine","date":"2015/9","level":"1.3","depth":1,"next":{"title":"httpserver实现","level":"1.4","depth":1,"path":"4.httpserver实现.md","ref":"4.httpserver实现.md","articles":[]},"previous":{"title":"硬件负载服务器开始","level":"1.2","depth":1,"path":"2.硬件负载服务器开始.md","ref":"2.硬件负载服务器开始.md","articles":[]},"dir":"ltr"},"config":{"gitbook":"*","theme":"default","variables":{},"plugins":["signature","-sharing","-lunr","-search","search-pro","github","toc"],"pluginsConfig":{"gitbook-plugin-signature":{"autoCopyright":{"color":"gray","owner":"<a href='https://github.com/outshineamaze/iotshine' target='_blank'>outshineamaze</a>","center":true}},"github":{"url":"https://github.com/outshineamaze/iotshine"},"toc":{"addClass":true,"className":"toc"},"signature":{},"search-pro":{},"highlight":{},"fontsettings":{"theme":"white","family":"sans","size":2},"theme-default":{"styles":{"website":"styles/website.css","pdf":"styles/pdf.css","epub":"styles/epub.css","mobi":"styles/mobi.css","ebook":"styles/ebook.css","print":"styles/print.css"},"showLevel":false}},"structure":{"langs":"LANGS.md","readme":"README.md","glossary":"GLOSSARY.md","summary":"SUMMARY.md"},"pdf":{"pageNumbers":true,"fontSize":12,"fontFamily":"Arial","paperSize":"a4","chapterMark":"pagebreak","pageBreaksBefore":"/","margin":{"right":62,"left":62,"top":56,"bottom":56}},"styles":{"website":"style/website.css"}},"file":{"path":"3.io复用的应用.md","mtime":"2019-01-25T09:27:47.341Z","type":"markdown"},"gitbook":{"version":"3.2.3","time":"2019-01-26T08:49:16.745Z"},"basePath":".","book":{"language":""}});
+        });
+    </script>
+</div>
+
+        
+    <script src="gitbook/gitbook.js"></script>
+    <script src="gitbook/theme.js"></script>
+    
+        
+        <script src="gitbook/gitbook-plugin-search-pro/jquery.mark.min.js"></script>
+        
+    
+        
+        <script src="gitbook/gitbook-plugin-search-pro/search.js"></script>
+        
+    
+        
+        <script src="gitbook/gitbook-plugin-github/plugin.js"></script>
+        
+    
+        
+        <script src="gitbook/gitbook-plugin-fontsettings/fontsettings.js"></script>
+        
+    
+
+    </body>
+</html>
+

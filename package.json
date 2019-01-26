@@ -1,0 +1,23 @@
+{
+  "name": "iotshine",
+  "version": "1.0.0",
+  "description": "个人毕业设计, 欢迎交流学习, 但是请勿直接copy哈!",
+  "main": "index.js",
+  "dependencies": {
+    "gh-pages": "^2.0.1",
+    "gitbook-plugin-github": "^2.0.0",
+    "gitbook-plugin-search-pro": "^2.0.2",
+    "gitbook-plugin-signature": "^1.5.2",
+    "gitbook-plugin-toc": "^0.0.2"
+  },
+  "devDependencies": {},
+  "scripts": {
+    "updateDocs": "node updateDocs.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/outshineamaze/iotshine"
+  },
+  "author": "",
+  "license": "ISC"
+}
