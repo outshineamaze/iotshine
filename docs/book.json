@@ -15,7 +15,7 @@
         "gitbook-plugin-signature":{
             "autoCopyright":{
                "color":"gray",
-               "owner": "<a href='https://github.com/outshineamaze/iotshine' target='_blank'>outshineamaze</a>",
+               "owner": "<a href='https://outshineamaze.github.io/' target='_blank'>outshineamaze</a>",
                "center":true
             }
         },
