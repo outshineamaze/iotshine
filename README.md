@@ -1,5 +1,6 @@
 
 ### [文档地址](http://outshineamaze.github.io/iotshine/)
+
 ### 功能简介：
 硬件接入功能
 1.	  数字型传感器接入

@@ -1,10 +1,6 @@
----
-title: 功能简介 
-tags: iotshine
-date: 2015/9
----
 
-### [项目地址](https://github.com/outshineamaze/iotshine)
+### [代码地址](https://github.com/outshineamaze/iotshine)
+
 ### 功能简介：
 硬件接入功能
 1.	  数字型传感器接入
