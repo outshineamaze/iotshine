@@ -1,0 +1,30 @@
+{
+    "styles": {
+        "website": "style/website.css"
+    },
+    "plugins": [
+        "signature",
+        "-sharing",
+        "-lunr",
+        "-search",
+        "search-pro",
+        "github",
+        "toc"
+    ],
+    "pluginsConfig": {
+        "gitbook-plugin-signature":{
+            "autoCopyright":{
+               "color":"gray",
+               "owner": "<a href='https://github.com/outshineamaze/iotshine' target='_blank'>outshineamaze</a>",
+               "center":true
+            }
+        },
+        "github": {
+            "url": "https://github.com/outshineamaze/iotshine"
+        },
+        "toc": {
+            "addClass": true,
+            "className": "toc"
+        }
+    }
+}

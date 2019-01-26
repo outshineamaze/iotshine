@@ -2,8 +2,5 @@
 *.pot
 *.pyc
 .idea/
-*.xml
-*.jpg
-pic/
-*.png
-*.vsdx
+docs/_book
+docs/node_modules
